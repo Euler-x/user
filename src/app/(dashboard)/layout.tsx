@@ -10,15 +10,18 @@ import { useAuthStore } from "@/stores/authStore";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
+    } else if (user && !user.email_verified) {
+      router.replace("/verify-email");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || !user?.email_verified) return null;
 
   return (
     <div className="min-h-screen">

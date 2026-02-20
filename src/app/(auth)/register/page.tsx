@@ -21,11 +21,17 @@ export default function RegisterPage() {
   const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
 
+  const user = useAuthStore((s) => s.user);
+
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      if (user?.email_verified) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/verify-email");
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

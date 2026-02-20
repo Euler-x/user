@@ -17,11 +17,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const user = useAuthStore((s) => s.user);
+
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      if (user?.email_verified) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/verify-email");
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
