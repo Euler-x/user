@@ -2,6 +2,7 @@
 export type WalletType = "connected" | "generated";
 export type StrategyType = "conservative" | "moderate" | "aggressive" | "custom";
 export type RiskProfile = "low" | "medium" | "high";
+export type StrategyTimeframe = "scalping" | "intraday" | "swing" | "position";
 export type SignalDirection = "buy" | "sell" | "hold";
 export type SignalStatus = "new" | "executing" | "filled" | "expired" | "cancelled";
 export type OrderType = "market" | "limit";
@@ -57,6 +58,14 @@ export interface Strategy {
   capital_allocation: number;
   max_drawdown_percent: number;
   is_active: boolean;
+  daily_loss_cap_percent: number | null;
+  target_volatility: number | null;
+  expected_volatility: number | null;
+  timeframe: StrategyTimeframe | null;
+  target_return_min: number | null;
+  target_return_max: number | null;
+  paused_reason: string | null;
+  paused_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,6 +78,12 @@ export interface StrategyCreate {
   max_positions?: number;
   capital_allocation: number;
   max_drawdown_percent?: number;
+  daily_loss_cap_percent?: number;
+  target_volatility?: number;
+  expected_volatility?: number;
+  timeframe?: StrategyTimeframe;
+  target_return_min?: number;
+  target_return_max?: number;
 }
 
 export interface StrategyUpdate {
@@ -78,6 +93,12 @@ export interface StrategyUpdate {
   max_positions?: number;
   capital_allocation?: number;
   max_drawdown_percent?: number;
+  daily_loss_cap_percent?: number;
+  target_volatility?: number;
+  expected_volatility?: number;
+  timeframe?: StrategyTimeframe;
+  target_return_min?: number;
+  target_return_max?: number;
 }
 
 // ── Signals ────────────────────────────────────────────────
@@ -290,4 +311,67 @@ export interface MessageResponse {
 export interface ApiError {
   detail: string;
   request_id?: string;
+}
+
+// ── Analytics ─────────────────────────────────────────────
+export interface AnalyticsOverview {
+  total_trades: number;
+  win_rate: number;
+  profit_factor: number;
+  sharpe_ratio: number;
+  max_drawdown: number;
+  total_pnl: number;
+  avg_trade_pnl: number;
+  best_trade: number;
+  worst_trade: number;
+  period_days: number;
+}
+
+export interface StrategyAnalytics extends AnalyticsOverview {
+  strategy_id: string;
+  strategy_name: string;
+}
+
+export interface EquityCurvePoint {
+  timestamp: string;
+  cumulative_pnl: number;
+  trade_pnl: number;
+}
+
+// ── Transparency ──────────────────────────────────────────
+export interface ProofOfReserves {
+  on_chain_balance: number;
+  total_allocated: number;
+  margin_used: number;
+  free_collateral: number;
+  surplus_deficit: number;
+  verification_timestamp: string;
+}
+
+export interface LivePosition {
+  symbol: string;
+  size: number;
+  entry_price: number;
+  unrealized_pnl: number;
+  leverage: number;
+  liquidation_price: number | null;
+  margin_used: number;
+  position_value: number;
+}
+
+export interface AgentKeyPermissions {
+  wallet_type: string;
+  can_trade: boolean;
+  can_withdraw: boolean;
+  can_transfer: boolean;
+  can_modify_agent: boolean;
+  description: string;
+  verified: boolean;
+}
+
+export interface WalletInfo {
+  wallet_address: string | null;
+  explorer_link: string | null;
+  agent_permissions: AgentKeyPermissions | null;
+  smart_contract_audit_link: string;
 }

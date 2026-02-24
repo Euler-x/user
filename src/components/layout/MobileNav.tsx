@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Zap, LayoutDashboard, Brain, Activity, ArrowLeftRight, CreditCard, Users, LifeBuoy, GraduationCap, Settings } from "lucide-react";
+import { X, Zap, LayoutDashboard, Brain, Activity, ArrowLeftRight, BarChart3, ShieldCheck, CreditCard, Users, LifeBuoy, GraduationCap, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -12,6 +12,8 @@ const navItems = [
   { label: "Signals", href: "/signals", icon: Zap },
   { label: "Executions", href: "/executions", icon: Activity },
   { label: "Transactions", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Transparency", href: "/transparency", icon: ShieldCheck },
   { label: "Billing", href: "/billing", icon: CreditCard },
   { label: "Ambassador", href: "/ambassador", icon: Users },
   { label: "Support", href: "/support", icon: LifeBuoy },

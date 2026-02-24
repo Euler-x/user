@@ -6,15 +6,19 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Play, Pause, Save, Shield, TrendingUp,
   Flame, Zap, Layers, Activity, BarChart3, AlertTriangle,
+  Clock, Target, Gauge, LineChart,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
+import GlowCard from "@/components/ui/GlowCard";
 import { PageSpinner } from "@/components/ui/Spinner";
+import EquityCurveChart from "@/components/charts/EquityCurveChart";
 import useStrategies from "@/hooks/useStrategies";
+import useAnalytics from "@/hooks/useAnalytics";
 import { formatCurrency, formatDate, capitalize } from "@/lib/utils";
-import type { Strategy, StrategyUpdate, RiskProfile, StrategyType } from "@/types";
+import type { Strategy, StrategyUpdate, RiskProfile, StrategyTimeframe } from "@/types";
 
 const STRATEGY_COLORS: Record<string, { color: string; icon: typeof Shield }> = {
   conservative: { color: "#3B82F6", icon: Shield },
@@ -26,6 +30,7 @@ export default function StrategyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { getStrategy, updateStrategy, activateStrategy, pauseStrategy } = useStrategies();
+  const { strategyAnalytics, equityCurve, fetchStrategyAnalytics, fetchEquityCurve } = useAnalytics();
   const [strategy, setStrategy] = useState<Strategy | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,11 +47,24 @@ export default function StrategyDetailPage() {
           max_positions: s.max_positions,
           capital_allocation: s.capital_allocation,
           max_drawdown_percent: s.max_drawdown_percent,
+          daily_loss_cap_percent: s.daily_loss_cap_percent ?? undefined,
+          target_volatility: s.target_volatility ?? undefined,
+          expected_volatility: s.expected_volatility ?? undefined,
+          timeframe: s.timeframe ?? undefined,
+          target_return_min: s.target_return_min ?? undefined,
+          target_return_max: s.target_return_max ?? undefined,
         });
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [id, getStrategy]);
+
+  useEffect(() => {
+    if (!loading && strategy) {
+      fetchStrategyAnalytics(id);
+      fetchEquityCurve({ strategy_id: id, days: 30 });
+    }
+  }, [id, loading, strategy, fetchStrategyAnalytics, fetchEquityCurve]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -114,6 +132,9 @@ export default function StrategyDetailPage() {
                     {capitalize(strategy.strategy_type)}
                   </span>{" "}
                   &middot; Created {formatDate(strategy.created_at)}
+                  {strategy.timeframe && (
+                    <> &middot; <span className="text-gray-300">{capitalize(strategy.timeframe)}</span></>
+                  )}
                 </p>
               </div>
             </div>
@@ -135,6 +156,24 @@ export default function StrategyDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Paused Reason Banner */}
+        {strategy.paused_reason && !strategy.is_active && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-3 bg-red-500/5 border border-red-500/10 rounded-xl p-4"
+          >
+            <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-400">Strategy Auto-Paused</p>
+              <p className="text-xs text-gray-400 mt-0.5">{strategy.paused_reason}</p>
+              {strategy.paused_at && (
+                <p className="text-xs text-gray-600 mt-1">Paused at {new Date(strategy.paused_at).toLocaleString()}</p>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-4 gap-3">
@@ -158,6 +197,66 @@ export default function StrategyDetailPage() {
           ))}
         </div>
 
+        {/* Risk Management & Strategy Details */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Daily Loss Cap", value: strategy.daily_loss_cap_percent ? `${strategy.daily_loss_cap_percent}%` : "—", icon: Shield },
+            { label: "Target Vol", value: strategy.target_volatility ? `${strategy.target_volatility}%` : "—", icon: Gauge },
+            { label: "Timeframe", value: strategy.timeframe ? capitalize(strategy.timeframe) : "—", icon: Clock },
+            {
+              label: "Target Return",
+              value: strategy.target_return_min && strategy.target_return_max
+                ? `${strategy.target_return_min}–${strategy.target_return_max}%`
+                : "—",
+              icon: Target,
+            },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+              className="rounded-xl bg-dark-200/60 border border-white/5 p-4 text-center"
+            >
+              <stat.icon className="h-4 w-4 mx-auto mb-2" style={{ color }} />
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{stat.label}</p>
+              <p className="text-sm font-bold text-white">{stat.value}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Strategy Analytics */}
+        {strategyAnalytics && strategyAnalytics.total_trades > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <GlowCard>
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <LineChart className="h-5 w-5" style={{ color }} />
+                Performance Analytics
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                {[
+                  { label: "Win Rate", value: `${strategyAnalytics.win_rate.toFixed(1)}%`, positive: strategyAnalytics.win_rate >= 50 },
+                  { label: "Profit Factor", value: strategyAnalytics.profit_factor.toFixed(2), positive: strategyAnalytics.profit_factor >= 1 },
+                  { label: "Total PnL", value: formatCurrency(strategyAnalytics.total_pnl), positive: strategyAnalytics.total_pnl >= 0 },
+                  { label: "Sharpe Ratio", value: strategyAnalytics.sharpe_ratio.toFixed(2), positive: strategyAnalytics.sharpe_ratio >= 1 },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-white/[0.03] rounded-xl p-3 text-center">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{stat.label}</p>
+                    <p className={`text-lg font-bold ${stat.positive ? "text-neon" : "text-red-400"}`}>
+                      {stat.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <EquityCurveChart data={equityCurve} height={200} />
+            </GlowCard>
+          </motion.div>
+        )}
+
         {/* Edit Form */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -175,17 +274,33 @@ export default function StrategyDetailPage() {
               value={form.name || ""}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Risk Profile</label>
-              <select
-                value={form.risk_profile || strategy.risk_profile}
-                onChange={(e) => setForm({ ...form, risk_profile: e.target.value as RiskProfile })}
-                className="w-full bg-dark-50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon/50"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-300">Risk Profile</label>
+                <select
+                  value={form.risk_profile || strategy.risk_profile}
+                  onChange={(e) => setForm({ ...form, risk_profile: e.target.value as RiskProfile })}
+                  className="w-full bg-dark-50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon/50"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-300">Timeframe</label>
+                <select
+                  value={form.timeframe || ""}
+                  onChange={(e) => setForm({ ...form, timeframe: (e.target.value || undefined) as StrategyTimeframe | undefined })}
+                  className="w-full bg-dark-50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon/50"
+                >
+                  <option value="">Not set</option>
+                  <option value="scalping">Scalping</option>
+                  <option value="intraday">Intraday</option>
+                  <option value="swing">Swing</option>
+                  <option value="position">Position</option>
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input
@@ -214,6 +329,47 @@ export default function StrategyDetailPage() {
                 value={form.max_drawdown_percent ?? strategy.max_drawdown_percent}
                 onChange={(e) => setForm({ ...form, max_drawdown_percent: Number(e.target.value) })}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Daily Loss Cap %"
+                type="number"
+                value={form.daily_loss_cap_percent ?? ""}
+                onChange={(e) => setForm({ ...form, daily_loss_cap_percent: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="e.g. 5"
+              />
+              <Input
+                label="Target Volatility %"
+                type="number"
+                value={form.target_volatility ?? ""}
+                onChange={(e) => setForm({ ...form, target_volatility: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="e.g. 20"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Expected Volatility %"
+                type="number"
+                value={form.expected_volatility ?? ""}
+                onChange={(e) => setForm({ ...form, expected_volatility: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="e.g. 18"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  label="Target Return Min %"
+                  type="number"
+                  value={form.target_return_min ?? ""}
+                  onChange={(e) => setForm({ ...form, target_return_min: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="e.g. 25"
+                />
+                <Input
+                  label="Max %"
+                  type="number"
+                  value={form.target_return_max ?? ""}
+                  onChange={(e) => setForm({ ...form, target_return_max: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="e.g. 60"
+                />
+              </div>
             </div>
             <div className="flex justify-end pt-2">
               <Button onClick={handleSave} loading={saving}>

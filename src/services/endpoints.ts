@@ -83,6 +83,20 @@ export const ENDPOINTS = {
     PREFERENCES: `${API}/telegram/notifications/preferences`,
   },
 
+  // Analytics
+  ANALYTICS: {
+    OVERVIEW: `${API}/analytics/overview`,
+    STRATEGY: (id: string) => `${API}/analytics/strategy/${id}`,
+    EQUITY_CURVE: `${API}/analytics/equity-curve`,
+  },
+
+  // Transparency
+  TRANSPARENCY: {
+    PROOF_OF_RESERVES: `${API}/transparency/proof-of-reserves`,
+    POSITIONS: `${API}/transparency/positions`,
+    WALLET_INFO: `${API}/transparency/wallet-info`,
+  },
+
   // Market Data
   MARKET: {
     WS: `${WS_BASE}/market/ws`,

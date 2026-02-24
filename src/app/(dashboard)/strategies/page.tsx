@@ -17,7 +17,7 @@ import { PageSpinner } from "@/components/ui/Spinner";
 import useStrategies from "@/hooks/useStrategies";
 import useBilling from "@/hooks/useBilling";
 import { formatCurrency, capitalize } from "@/lib/utils";
-import type { StrategyType, RiskProfile } from "@/types";
+import type { StrategyType, RiskProfile, StrategyTimeframe } from "@/types";
 
 /* ──────────────────────────────────────────────────────────
    PREDEFINED STRATEGY PRESETS
@@ -45,6 +45,12 @@ interface StrategyPreset {
   riskLevel: number;
   returnLevel: number;
   volatilityLevel: number;
+  daily_loss_cap_percent: number;
+  target_volatility: number;
+  expected_volatility: number;
+  timeframe: StrategyTimeframe;
+  target_return_min: number;
+  target_return_max: number;
 }
 
 const STRATEGY_PRESETS: StrategyPreset[] = [
@@ -77,6 +83,12 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     riskLevel: 2,
     returnLevel: 3,
     volatilityLevel: 2,
+    daily_loss_cap_percent: 3,
+    target_volatility: 10,
+    expected_volatility: 8,
+    timeframe: "swing",
+    target_return_min: 10,
+    target_return_max: 25,
   },
   {
     id: "moderate",
@@ -107,6 +119,12 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     riskLevel: 5,
     returnLevel: 6,
     volatilityLevel: 5,
+    daily_loss_cap_percent: 5,
+    target_volatility: 20,
+    expected_volatility: 18,
+    timeframe: "intraday",
+    target_return_min: 25,
+    target_return_max: 60,
   },
   {
     id: "aggressive",
@@ -137,6 +155,12 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     riskLevel: 8,
     returnLevel: 9,
     volatilityLevel: 8,
+    daily_loss_cap_percent: 10,
+    target_volatility: 35,
+    expected_volatility: 30,
+    timeframe: "scalping",
+    target_return_min: 50,
+    target_return_max: 150,
   },
 ];
 
@@ -362,6 +386,20 @@ function PresetCard({
    DETAIL PANEL (expands when a preset is selected)
    ────────────────────────────────────────────────────────── */
 
+interface DeployParams {
+  name: string;
+  capital: number;
+  leverage_limit: number;
+  max_positions: number;
+  max_drawdown_percent: number;
+  daily_loss_cap_percent: number;
+  target_volatility: number;
+  expected_volatility: number;
+  timeframe: StrategyTimeframe;
+  target_return_min: number;
+  target_return_max: number;
+}
+
 function DetailPanel({
   preset,
   onClose,
@@ -371,16 +409,34 @@ function DetailPanel({
 }: {
   preset: StrategyPreset;
   onClose: () => void;
-  onCreate: (name: string, capital: number) => void;
+  onCreate: (params: DeployParams) => void;
   creating: boolean;
   hasActiveSub: boolean;
 }) {
   const [name, setName] = useState(`${preset.name} Strategy`);
   const [capital, setCapital] = useState(preset.default_capital);
+  const [leverage, setLeverage] = useState(preset.leverage_limit);
+  const [maxPositions, setMaxPositions] = useState(preset.max_positions);
+  const [maxDrawdown, setMaxDrawdown] = useState(preset.max_drawdown_percent);
+  const [dailyLossCap, setDailyLossCap] = useState(preset.daily_loss_cap_percent);
+  const [targetVol, setTargetVol] = useState(preset.target_volatility);
+  const [expectedVol, setExpectedVol] = useState(preset.expected_volatility);
+  const [timeframe, setTimeframe] = useState<StrategyTimeframe>(preset.timeframe);
+  const [targetReturnMin, setTargetReturnMin] = useState(preset.target_return_min);
+  const [targetReturnMax, setTargetReturnMax] = useState(preset.target_return_max);
 
   useEffect(() => {
     setName(`${preset.name} Strategy`);
     setCapital(preset.default_capital);
+    setLeverage(preset.leverage_limit);
+    setMaxPositions(preset.max_positions);
+    setMaxDrawdown(preset.max_drawdown_percent);
+    setDailyLossCap(preset.daily_loss_cap_percent);
+    setTargetVol(preset.target_volatility);
+    setExpectedVol(preset.expected_volatility);
+    setTimeframe(preset.timeframe);
+    setTargetReturnMin(preset.target_return_min);
+    setTargetReturnMax(preset.target_return_max);
   }, [preset]);
 
   const Icon = preset.icon;
@@ -493,26 +549,50 @@ function DetailPanel({
                 Execution Parameters
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Leverage", value: `${preset.leverage_limit}x`, icon: TrendingUp },
-                  { label: "Max Positions", value: preset.max_positions.toString(), icon: Layers },
-                  { label: "Max Drawdown", value: `${preset.max_drawdown_percent}%`, icon: AlertTriangle },
-                  { label: "Trades/Day", value: preset.avg_trades_day, icon: BarChart3 },
-                ].map((param, i) => (
-                  <motion.div
-                    key={param.label}
-                    className="bg-white/[0.03] rounded-xl p-3 border border-white/5"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4 + i * 0.06 }}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <param.icon className="h-3 w-3 text-gray-500" />
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">{param.label}</p>
-                    </div>
-                    <p className="text-base font-bold text-white">{param.value}</p>
-                  </motion.div>
-                ))}
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Leverage
+                  </label>
+                  <input
+                    type="number"
+                    value={leverage}
+                    onChange={(e) => setLeverage(Number(e.target.value))}
+                    min={1}
+                    className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <Layers className="h-3 w-3" /> Max Positions
+                  </label>
+                  <input
+                    type="number"
+                    value={maxPositions}
+                    onChange={(e) => setMaxPositions(Number(e.target.value))}
+                    min={1}
+                    className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" /> Max Drawdown %
+                  </label>
+                  <input
+                    type="number"
+                    value={maxDrawdown}
+                    onChange={(e) => setMaxDrawdown(Number(e.target.value))}
+                    min={1}
+                    className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <BarChart3 className="h-3 w-3" /> Est. Trades/Day
+                  </label>
+                  <div className="bg-white/[0.03] rounded-lg px-3 py-2 text-sm font-medium text-white border border-white/5">
+                    {preset.avg_trades_day}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -599,6 +679,79 @@ function DetailPanel({
                   </div>
                 </div>
 
+                {/* Risk Management Fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Daily Loss Cap %</label>
+                    <input
+                      type="number"
+                      value={dailyLossCap}
+                      onChange={(e) => setDailyLossCap(Number(e.target.value))}
+                      min={1}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Timeframe</label>
+                    <select
+                      value={timeframe}
+                      onChange={(e) => setTimeframe(e.target.value as StrategyTimeframe)}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    >
+                      <option value="scalping">Scalping</option>
+                      <option value="intraday">Intraday</option>
+                      <option value="swing">Swing</option>
+                      <option value="position">Position</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Target Volatility %</label>
+                    <input
+                      type="number"
+                      value={targetVol}
+                      onChange={(e) => setTargetVol(Number(e.target.value))}
+                      min={1}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Expected Volatility %</label>
+                    <input
+                      type="number"
+                      value={expectedVol}
+                      onChange={(e) => setExpectedVol(Number(e.target.value))}
+                      min={1}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Target Return Min %</label>
+                    <input
+                      type="number"
+                      value={targetReturnMin}
+                      onChange={(e) => setTargetReturnMin(Number(e.target.value))}
+                      min={0}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-400">Target Return Max %</label>
+                    <input
+                      type="number"
+                      value={targetReturnMax}
+                      onChange={(e) => setTargetReturnMax(Number(e.target.value))}
+                      min={0}
+                      className="w-full bg-dark-50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    />
+                  </div>
+                </div>
+
                 {/* Summary */}
                 <div className="bg-dark-300/50 rounded-xl p-3 border border-white/5">
                   <div className="grid grid-cols-2 gap-y-2 text-sm">
@@ -607,7 +760,13 @@ function DetailPanel({
                     <span className="text-gray-500">Risk Profile</span>
                     <span className="text-white font-medium text-right capitalize">{preset.risk_profile}</span>
                     <span className="text-gray-500">Leverage</span>
-                    <span className="text-white font-medium text-right">{preset.leverage_limit}x</span>
+                    <span className="text-white font-medium text-right">{leverage}x</span>
+                    <span className="text-gray-500">Daily Loss Cap</span>
+                    <span className="text-white font-medium text-right">{dailyLossCap}%</span>
+                    <span className="text-gray-500">Timeframe</span>
+                    <span className="text-white font-medium text-right capitalize">{timeframe}</span>
+                    <span className="text-gray-500">Target Return</span>
+                    <span className="text-white font-medium text-right">{targetReturnMin}–{targetReturnMax}%</span>
                     <span className="text-gray-500">Capital</span>
                     <span className="font-medium text-right" style={{ color: preset.color }}>
                       {formatCurrency(capital)}
@@ -617,7 +776,19 @@ function DetailPanel({
 
                 {hasActiveSub ? (
                   <Button
-                    onClick={() => onCreate(name, capital)}
+                    onClick={() => onCreate({
+                      name,
+                      capital,
+                      leverage_limit: leverage,
+                      max_positions: maxPositions,
+                      max_drawdown_percent: maxDrawdown,
+                      daily_loss_cap_percent: dailyLossCap,
+                      target_volatility: targetVol,
+                      expected_volatility: expectedVol,
+                      timeframe,
+                      target_return_min: targetReturnMin,
+                      target_return_max: targetReturnMax,
+                    })}
                     loading={creating}
                     disabled={!name || capital < 100}
                     className="w-full group"
@@ -678,18 +849,24 @@ export default function StrategiesPage() {
     []
   );
 
-  const handleCreate = async (name: string, capital: number) => {
+  const handleCreate = async (params: DeployParams) => {
     if (!selectedPreset) return;
     setCreating(true);
     try {
       await createStrategy({
-        name,
+        name: params.name,
         strategy_type: selectedPreset.id,
         risk_profile: selectedPreset.risk_profile,
-        capital_allocation: capital,
-        leverage_limit: selectedPreset.leverage_limit,
-        max_positions: selectedPreset.max_positions,
-        max_drawdown_percent: selectedPreset.max_drawdown_percent,
+        capital_allocation: params.capital,
+        leverage_limit: params.leverage_limit,
+        max_positions: params.max_positions,
+        max_drawdown_percent: params.max_drawdown_percent,
+        daily_loss_cap_percent: params.daily_loss_cap_percent,
+        target_volatility: params.target_volatility,
+        expected_volatility: params.expected_volatility,
+        timeframe: params.timeframe,
+        target_return_min: params.target_return_min,
+        target_return_max: params.target_return_max,
       });
       setSelectedPreset(null);
     } finally {
@@ -850,7 +1027,7 @@ export default function StrategiesPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3 text-center mb-4">
+                      <div className="grid grid-cols-3 gap-3 text-center mb-3">
                         <div className="bg-white/[0.03] rounded-lg py-2">
                           <p className="text-[10px] text-gray-500 uppercase tracking-wider">Capital</p>
                           <p className="text-sm font-medium text-white">
@@ -867,6 +1044,24 @@ export default function StrategiesPage() {
                             {strategy.max_drawdown_percent}%
                           </p>
                         </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {strategy.timeframe && (
+                          <span className="text-[10px] bg-white/[0.04] text-gray-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            {strategy.timeframe}
+                          </span>
+                        )}
+                        {strategy.daily_loss_cap_percent && (
+                          <span className="text-[10px] bg-white/[0.04] text-gray-400 px-2 py-0.5 rounded-full tracking-wider">
+                            {strategy.daily_loss_cap_percent}% daily cap
+                          </span>
+                        )}
+                        {strategy.target_return_min && strategy.target_return_max && (
+                          <span className="text-[10px] bg-white/[0.04] text-gray-400 px-2 py-0.5 rounded-full tracking-wider">
+                            {strategy.target_return_min}–{strategy.target_return_max}% target
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
