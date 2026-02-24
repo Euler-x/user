@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff, Wallet, ArrowRight, ExternalLink, Crown, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff, ExternalLink } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
-import ConnectWalletModal from "@/components/ConnectWalletModal";
 import GlowCard from "@/components/ui/GlowCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { PageSpinner } from "@/components/ui/Spinner";
-import { useAuthStore } from "@/stores/authStore";
 import useStrategies from "@/hooks/useStrategies";
 import useSignals from "@/hooks/useSignals";
 import useExecutions from "@/hooks/useExecutions";
-import useBilling from "@/hooks/useBilling";
 import useMarketData from "@/hooks/useMarketData";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
 
@@ -39,25 +35,20 @@ export default function DashboardPage() {
   const { strategies, fetchStrategies, loading: strategiesLoading } = useStrategies();
   const { fetchSignals, loading: signalsLoading } = useSignals();
   const { executions, fetchExecutions, loading: execLoading } = useExecutions();
-  const { subscription, fetchSubscription } = useBilling();
   const { tokens, topGainers, connected } = useMarketData();
-  const user = useAuthStore((s) => s.user);
   const [liveSignals, setLiveSignals] = useState(0);
-  const [showWalletModal, setShowWalletModal] = useState(false);
 
   useEffect(() => {
     fetchStrategies();
     fetchSignals({ page: 1, page_size: 5 }).then((d) => d && setLiveSignals(d.total));
     fetchExecutions({ page: 1, page_size: 5 });
-    fetchSubscription();
-  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchSubscription]);
+  }, [fetchStrategies, fetchSignals, fetchExecutions]);
 
   const loading = strategiesLoading || signalsLoading || execLoading;
   if (loading && strategies.length === 0) return <PageSpinner />;
 
   const activeStrategies = strategies.filter((s) => s.is_active).length;
   const totalPnl = executions.reduce((sum, e) => sum + (e.pnl ?? 0), 0);
-  const hasActiveSub = subscription?.status === "active" && subscription.plan;
 
   const stats = [
     { label: "Active Strategies", value: activeStrategies, total: strategies.length, icon: Brain, color: "text-neon" },
@@ -69,78 +60,10 @@ export default function DashboardPage() {
   return (
     <PageTransition>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-              {hasActiveSub ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon/10 border border-neon/20 text-xs font-semibold text-neon">
-                  <Crown className="h-3 w-3" />
-                  {subscription.plan!.name}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-gray-400">
-                  Free
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-400 mt-1">Overview of your trading activity</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-1">Overview of your trading activity</p>
         </div>
-
-        {/* Upgrade to Pro Banner */}
-        {!hasActiveSub && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Link
-              href="/billing"
-              className="block w-full text-left relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl p-5 hover:border-amber-500/40 transition-colors group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-amber-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Upgrade to Pro</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Unlock more strategies, higher allocations, and ATE engine access</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-amber-400 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </div>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Connect Wallet Banner */}
-        {user && !user.has_wallet && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <button
-              onClick={() => setShowWalletModal(true)}
-              className="w-full text-left relative overflow-hidden bg-gradient-to-r from-neon/10 via-neon/5 to-transparent border border-neon/20 rounded-2xl p-5 cursor-pointer hover:border-neon/40 transition-colors group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-xl bg-neon/10 flex items-center justify-center">
-                    <Wallet className="h-5 w-5 text-neon" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Connect Your Hyperliquid Wallet</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Link your wallet to enable automated trading with the ATE engine</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-neon opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </div>
-            </button>
-          </motion.div>
-        )}
-
-        <ConnectWalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
