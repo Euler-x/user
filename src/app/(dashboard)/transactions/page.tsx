@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ExternalLink } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Table from "@/components/ui/Table";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -11,6 +12,8 @@ import useTransactions from "@/hooks/useTransactions";
 import usePagination from "@/hooks/usePagination";
 import { formatCurrency, formatDateTime, capitalize } from "@/lib/utils";
 import type { Transaction } from "@/types";
+
+const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
 const columns = [
   {
@@ -42,7 +45,16 @@ const columns = [
     header: "Tx Hash",
     render: (t: Transaction) =>
       t.tx_hash ? (
-        <span className="font-mono text-xs text-neon">{t.tx_hash.slice(0, 10)}...</span>
+        <a
+          href={`${EXPLORER_TX_URL}${t.tx_hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(ev) => ev.stopPropagation()}
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-neon/70 hover:text-neon transition-colors"
+        >
+          {t.tx_hash.slice(0, 10)}...
+          <ExternalLink className="h-3 w-3" />
+        </a>
       ) : (
         <span className="text-gray-600">—</span>
       ),

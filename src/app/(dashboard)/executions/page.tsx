@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ExternalLink } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Table from "@/components/ui/Table";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -10,6 +11,8 @@ import useExecutions from "@/hooks/useExecutions";
 import usePagination from "@/hooks/usePagination";
 import { formatCurrency, formatDateTime, formatPnl } from "@/lib/utils";
 import type { Execution } from "@/types";
+
+const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
 const columns = [
   {
@@ -63,6 +66,25 @@ const columns = [
     key: "created_at",
     header: "Date",
     render: (e: Execution) => <span className="text-gray-500 text-xs">{formatDateTime(e.created_at)}</span>,
+  },
+  {
+    key: "explorer",
+    header: "",
+    render: (e: Execution) =>
+      e.tx_hash ? (
+        <a
+          href={`${EXPLORER_TX_URL}${e.tx_hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(ev) => ev.stopPropagation()}
+          className="inline-flex items-center gap-1.5 text-xs text-neon/70 hover:text-neon transition-colors"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Explorer</span>
+        </a>
+      ) : (
+        <span className="text-gray-700 text-xs">—</span>
+      ),
   },
 ];
 

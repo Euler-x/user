@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff, Wallet, ArrowRight } from "lucide-react";
+import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff, Wallet, ArrowRight, ExternalLink, Crown, Sparkles } from "lucide-react";
+import Link from "next/link";
 import PageTransition from "@/components/PageTransition";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
 import GlowCard from "@/components/ui/GlowCard";
@@ -15,6 +16,8 @@ import useExecutions from "@/hooks/useExecutions";
 import useBilling from "@/hooks/useBilling";
 import useMarketData from "@/hooks/useMarketData";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
+
+const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
 function formatCompact(value: string | number): string {
   const num = typeof value === "string" ? parseFloat(value) : value;
@@ -54,6 +57,7 @@ export default function DashboardPage() {
 
   const activeStrategies = strategies.filter((s) => s.is_active).length;
   const totalPnl = executions.reduce((sum, e) => sum + (e.pnl ?? 0), 0);
+  const hasActiveSub = subscription?.status === "active" && subscription.plan;
 
   const stats = [
     { label: "Active Strategies", value: activeStrategies, total: strategies.length, icon: Brain, color: "text-neon" },
@@ -65,15 +69,50 @@ export default function DashboardPage() {
   return (
     <PageTransition>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Overview of your trading activity
-            {subscription?.status === "active" && subscription.plan && (
-              <> &middot; <span className="text-neon">{subscription.plan.name} Plan</span></>
-            )}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+              {hasActiveSub ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon/10 border border-neon/20 text-xs font-semibold text-neon">
+                  <Crown className="h-3 w-3" />
+                  {subscription.plan!.name}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-gray-400">
+                  Free
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-400 mt-1">Overview of your trading activity</p>
+          </div>
         </div>
+
+        {/* Upgrade to Pro Banner */}
+        {!hasActiveSub && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Link
+              href="/billing"
+              className="block w-full text-left relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl p-5 hover:border-amber-500/40 transition-colors group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Upgrade to Pro</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Unlock more strategies, higher allocations, and ATE engine access</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-amber-400 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </div>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Connect Wallet Banner */}
         {user && !user.has_wallet && (
@@ -228,6 +267,7 @@ export default function DashboardPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entry</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">PnL</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -244,6 +284,20 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge status={exec.status} />
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {exec.tx_hash ? (
+                            <a
+                              href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-neon/70 hover:text-neon transition-colors"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-700 text-xs">—</span>
+                          )}
                         </td>
                       </tr>
                     ))}
