@@ -53,13 +53,13 @@ export default function EquityCurveChart({ data, height = 300 }: EquityCurveChar
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
         <XAxis
           dataKey="timestamp"
-          tickFormatter={formatDate}
+          tickFormatter={(val) => formatDate(String(val))}
           tick={{ fill: "#6B7280", fontSize: 11 }}
           axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
           tickLine={false}
         />
         <YAxis
-          tickFormatter={(v: number) => formatCurrency(v)}
+          tickFormatter={(v) => formatCurrency(Number(v))}
           tick={{ fill: "#6B7280", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
@@ -73,8 +73,8 @@ export default function EquityCurveChart({ data, height = 300 }: EquityCurveChar
             fontSize: "12px",
           }}
           labelFormatter={(label) => formatDate(String(label))}
-          formatter={(value: number, name: string) => [
-            formatCurrency(value),
+          formatter={(value, name) => [
+            formatCurrency(Number(value ?? 0)),
             name === "cumulative_pnl" ? "Cumulative PnL" : "Trade PnL",
           ]}
         />

@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Zap, Mail, Lock, UserPlus, Gift } from "lucide-react";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import useAuth from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { register, loading } = useAuth();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const router = useRouter();
@@ -155,5 +154,13 @@ export default function RegisterPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
