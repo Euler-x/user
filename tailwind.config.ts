@@ -18,6 +18,24 @@ const config: Config = {
           800: "#115B07",
           900: "#083204",
         },
+        cyan: {
+          DEFAULT: "#06B6D4",
+          400: "#22D3EE",
+          500: "#06B6D4",
+          600: "#0891B2",
+        },
+        purple: {
+          DEFAULT: "#8B5CF6",
+          400: "#A78BFA",
+          500: "#8B5CF6",
+          600: "#7C3AED",
+        },
+        amber: {
+          DEFAULT: "#F59E0B",
+          400: "#FBBF24",
+          500: "#F59E0B",
+          600: "#D97706",
+        },
         dark: {
           DEFAULT: "#0a0a0a",
           50: "#1a1a1a",
@@ -32,9 +50,12 @@ const config: Config = {
       },
       boxShadow: {
         neon: "0 0 5px #39FF14, 0 0 20px rgba(57, 255, 20, 0.3)",
-        "neon-lg": "0 0 10px #39FF14, 0 0 40px rgba(57, 255, 20, 0.4), 0 0 80px rgba(57, 255, 20, 0.1)",
+        "neon-lg":
+          "0 0 10px #39FF14, 0 0 40px rgba(57, 255, 20, 0.4), 0 0 80px rgba(57, 255, 20, 0.1)",
         "neon-sm": "0 0 3px #39FF14, 0 0 10px rgba(57, 255, 20, 0.2)",
         glow: "0 0 15px rgba(57, 255, 20, 0.15)",
+        "glow-cyan": "0 0 15px rgba(6, 182, 212, 0.15)",
+        "glow-purple": "0 0 15px rgba(139, 92, 246, 0.15)",
       },
       backgroundImage: {
         "grid-pattern":
@@ -65,6 +86,23 @@ const config: Config = {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        aurora: {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "border-spin": {
+          "0%": { "--angle": "0deg" },
+          "100%": { "--angle": "360deg" },
+        },
+        "pulse-slow": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.8" },
+        },
+        orbit: {
+          "0%": { transform: "rotate(0deg) translateX(150px) rotate(0deg)" },
+          "100%": { transform: "rotate(360deg) translateX(150px) rotate(-360deg)" },
+        },
       },
       animation: {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
@@ -72,6 +110,9 @@ const config: Config = {
         "fade-in": "fade-in 0.5s ease-out forwards",
         float: "float 6s ease-in-out infinite",
         ticker: "ticker 30s linear infinite",
+        aurora: "aurora 15s ease infinite",
+        "pulse-slow": "pulse-slow 4s ease-in-out infinite",
+        orbit: "orbit 20s linear infinite",
       },
     },
   },

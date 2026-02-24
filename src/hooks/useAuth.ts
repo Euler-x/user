@@ -3,7 +3,7 @@ import api from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
-import type { AuthResponse, SignMessageResponse, User } from "@/types";
+import type { AuthResponse, User } from "@/types";
 
 export default function useAuth() {
   const [loading, setLoading] = useState(false);
@@ -46,28 +46,16 @@ export default function useAuth() {
     [setAuth]
   );
 
-  const getSignMessage = useCallback(async (walletAddress: string): Promise<string | null> => {
-    try {
-      const { data } = await api.get<SignMessageResponse>(ENDPOINTS.AUTH.SIGN_MESSAGE, {
-        params: { wallet_address: walletAddress },
-      });
-      return data.message;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const connectWallet = useCallback(
-    async (walletAddress: string, message: string, signature: string) => {
+  const connectHyperliquidWallet = useCallback(
+    async (walletAddress: string, agentPrivateKey: string) => {
       setLoading(true);
       try {
         const { data } = await api.post<AuthResponse>(ENDPOINTS.AUTH.CONNECT, {
           wallet_address: walletAddress,
-          message,
-          signature,
+          agent_private_key: agentPrivateKey,
         });
         setAuth(data.user, data.access_token, data.refresh_token);
-        toast.success("Wallet connected!");
+        toast.success("Hyperliquid wallet connected!");
         return data;
       } finally {
         setLoading(false);
@@ -109,5 +97,5 @@ export default function useAuth() {
     }
   }, [fetchMe]);
 
-  return { loading, user, register, login, connectWallet, getSignMessage, fetchMe, submitEmail, verifyEmail, logout };
+  return { loading, user, register, login, connectHyperliquidWallet, fetchMe, submitEmail, verifyEmail, logout };
 }

@@ -45,11 +45,6 @@ export interface WalletGenerateResponse {
   auth: AuthResponse;
 }
 
-export interface SignMessageResponse {
-  message: string;
-  wallet_address: string;
-}
-
 // ── Strategies ─────────────────────────────────────────────
 export interface Strategy {
   id: string;
@@ -263,6 +258,20 @@ export interface NotificationPreferences {
   support_telegram: boolean;
   referrals_email: boolean;
   referrals_telegram: boolean;
+}
+
+// ── Market Data ───────────────────────────────────────────
+export interface MarketToken {
+  symbol: string;
+  midPrice: number;
+  markPx: number;
+  prevDayPx: number;
+  change24h: number;
+  funding: string;
+  openInterest: string;
+  dayNtlVlm: string;
+  szDecimals: number;
+  maxLeverage: number;
 }
 
 // ── Common ─────────────────────────────────────────────────

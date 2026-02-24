@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Zap, Activity, TrendingUp } from "lucide-react";
+import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import GlowCard from "@/components/ui/GlowCard";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -11,13 +11,31 @@ import useStrategies from "@/hooks/useStrategies";
 import useSignals from "@/hooks/useSignals";
 import useExecutions from "@/hooks/useExecutions";
 import useBilling from "@/hooks/useBilling";
-import { formatCurrency, formatPnl } from "@/lib/utils";
+import useMarketData from "@/hooks/useMarketData";
+import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
+
+function formatCompact(value: string | number): string {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num) || num === 0) return "$0";
+  if (num >= 1_000_000_000) return `$${(num / 1_000_000_000).toFixed(1)}B`;
+  if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000) return `$${(num / 1_000).toFixed(1)}K`;
+  return `$${num.toFixed(2)}`;
+}
+
+function formatPrice(price: number): string {
+  if (price >= 1000) return formatCurrency(price);
+  if (price >= 1) return `$${price.toFixed(2)}`;
+  if (price >= 0.01) return `$${price.toFixed(4)}`;
+  return `$${price.toFixed(6)}`;
+}
 
 export default function DashboardPage() {
   const { strategies, fetchStrategies, loading: strategiesLoading } = useStrategies();
   const { fetchSignals, loading: signalsLoading } = useSignals();
   const { executions, fetchExecutions, loading: execLoading } = useExecutions();
   const { subscription, fetchSubscription } = useBilling();
+  const { tokens, topGainers, connected } = useMarketData();
   const [liveSignals, setLiveSignals] = useState(0);
 
   useEffect(() => {
@@ -78,6 +96,87 @@ export default function DashboardPage() {
               </GlowCard>
             </motion.div>
           ))}
+        </div>
+
+        {/* Top Gainers */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">Top Gainers</h2>
+            <div className="flex items-center gap-2 text-xs">
+              {connected ? (
+                <span className="flex items-center gap-1 text-neon">
+                  <Wifi className="h-3 w-3" /> Live
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-gray-500">
+                  <WifiOff className="h-3 w-3" /> Connecting...
+                </span>
+              )}
+              <span className="text-gray-600">{tokens.length} assets</span>
+            </div>
+          </div>
+
+          {topGainers.length === 0 ? (
+            <div className="bg-dark-200/80 border border-white/5 rounded-2xl p-8 text-center">
+              <p className="text-gray-500">
+                {connected ? "No gainers at the moment." : "Connecting to market feed..."}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-dark-200/80 border border-white/5 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">24h Change</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Volume (24h)</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Open Interest</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Funding</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {topGainers.slice(0, 20).map((token, i) => (
+                      <motion.tr
+                        key={token.symbol}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.02 }}
+                        className="hover:bg-white/[0.02]"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-gray-300">
+                              {token.symbol.slice(0, 2)}
+                            </div>
+                            <span className="text-sm font-medium text-white">{token.symbol}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-mono text-gray-200">
+                          {formatPrice(token.midPrice)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`text-sm font-medium ${token.change24h >= 0 ? "text-neon" : "text-red-400"}`}>
+                            {token.change24h >= 0 ? "+" : ""}{formatNumber(token.change24h)}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-400 hidden sm:table-cell">
+                          {formatCompact(token.dayNtlVlm)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-400 hidden md:table-cell">
+                          {formatCompact(token.openInterest)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-mono text-gray-400 hidden lg:table-cell">
+                          {(parseFloat(token.funding) * 100).toFixed(4)}%
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recent Executions */}

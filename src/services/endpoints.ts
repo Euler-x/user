@@ -1,11 +1,13 @@
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+// Derive WebSocket URL from API URL
+const WS_BASE = API.replace(/^http/, "ws").replace(/\/api\/v1$/, "/api/v1");
+
 export const ENDPOINTS = {
   // Auth
   AUTH: {
     REGISTER: `${API}/auth/register`,
     LOGIN: `${API}/auth/login`,
-    SIGN_MESSAGE: `${API}/auth/sign-message`,
     CONNECT: `${API}/auth/connect`,
     GENERATE: `${API}/auth/generate`,
     REFRESH: `${API}/auth/refresh`,
@@ -79,5 +81,12 @@ export const ENDPOINTS = {
     CONFIG: `${API}/telegram/config`,
     TEST: `${API}/telegram/test`,
     PREFERENCES: `${API}/telegram/notifications/preferences`,
+  },
+
+  // Market Data
+  MARKET: {
+    WS: `${WS_BASE}/market/ws`,
+    TOP_GAINERS: `${API}/market/top-gainers`,
+    ALL: `${API}/market/all`,
   },
 } as const;
