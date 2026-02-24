@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff } from "lucide-react";
+import { Brain, Zap, Activity, TrendingUp, Wifi, WifiOff, Wallet, ArrowRight } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import ConnectWalletModal from "@/components/ConnectWalletModal";
 import GlowCard from "@/components/ui/GlowCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { PageSpinner } from "@/components/ui/Spinner";
+import { useAuthStore } from "@/stores/authStore";
 import useStrategies from "@/hooks/useStrategies";
 import useSignals from "@/hooks/useSignals";
 import useExecutions from "@/hooks/useExecutions";
@@ -36,7 +38,9 @@ export default function DashboardPage() {
   const { executions, fetchExecutions, loading: execLoading } = useExecutions();
   const { subscription, fetchSubscription } = useBilling();
   const { tokens, topGainers, connected } = useMarketData();
+  const user = useAuthStore((s) => s.user);
   const [liveSignals, setLiveSignals] = useState(0);
+  const [showWalletModal, setShowWalletModal] = useState(false);
 
   useEffect(() => {
     fetchStrategies();
@@ -70,6 +74,34 @@ export default function DashboardPage() {
             )}
           </p>
         </div>
+
+        {/* Connect Wallet Banner */}
+        {user && !user.has_wallet && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <button
+              onClick={() => setShowWalletModal(true)}
+              className="w-full text-left relative overflow-hidden bg-gradient-to-r from-neon/10 via-neon/5 to-transparent border border-neon/20 rounded-2xl p-5 cursor-pointer hover:border-neon/40 transition-colors group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-neon/10 flex items-center justify-center">
+                    <Wallet className="h-5 w-5 text-neon" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Connect Your Hyperliquid Wallet</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Link your wallet to enable automated trading with the ATE engine</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-neon opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        <ConnectWalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
