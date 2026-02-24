@@ -72,7 +72,7 @@ export default function EquityCurveChart({ data, height = 300 }: EquityCurveChar
             borderRadius: "8px",
             fontSize: "12px",
           }}
-          labelFormatter={formatDate}
+          labelFormatter={(label) => formatDate(String(label))}
           formatter={(value: number, name: string) => [
             formatCurrency(value),
             name === "cumulative_pnl" ? "Cumulative PnL" : "Trade PnL",
