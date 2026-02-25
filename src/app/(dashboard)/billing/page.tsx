@@ -31,13 +31,48 @@ const CRYPTO_ICON_URL = "https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.
 
 // Popular currencies shown first in the picker
 const POPULAR_CURRENCIES = [
-  "btc", "eth", "usdt", "usdc", "sol", "bnb", "xrp", "doge", "matic", "ltc",
-  "trx", "avax", "dot", "ada", "shib", "dai",
+  "btc", "eth", "usdterc20", "usdttrc20", "usdc", "sol", "bnbbsc", "xrp",
+  "doge", "matic", "ltc", "trx", "avaxc", "ada", "shib", "dai", "usdtbsc",
+  "usdcsol",
 ];
+
+// Map NowPayments currency codes to icon file names and display labels
+const CURRENCY_MAP: Record<string, { icon: string; label: string }> = {
+  usdterc20: { icon: "usdt", label: "USDT (ERC20)" },
+  usdttrc20: { icon: "usdt", label: "USDT (TRC20)" },
+  usdtbsc: { icon: "usdt", label: "USDT (BSC)" },
+  usdtmatic: { icon: "usdt", label: "USDT (Polygon)" },
+  usdtarb: { icon: "usdt", label: "USDT (Arbitrum)" },
+  usdtop: { icon: "usdt", label: "USDT (Optimism)" },
+  usdtsol: { icon: "usdt", label: "USDT (Solana)" },
+  usdtton: { icon: "usdt", label: "USDT (TON)" },
+  usdcsol: { icon: "usdc", label: "USDC (Solana)" },
+  usdcmatic: { icon: "usdc", label: "USDC (Polygon)" },
+  usdcbsc: { icon: "usdc", label: "USDC (BSC)" },
+  usdcarb: { icon: "usdc", label: "USDC (Arbitrum)" },
+  usdcbase: { icon: "usdc", label: "USDC (Base)" },
+  usdcop: { icon: "usdc", label: "USDC (Optimism)" },
+  bnbbsc: { icon: "bnb", label: "BNB (BSC)" },
+  avaxc: { icon: "avax", label: "AVAX (C-Chain)" },
+  ethbase: { icon: "eth", label: "ETH (Base)" },
+  etharb: { icon: "eth", label: "ETH (Arbitrum)" },
+  ethbsc: { icon: "eth", label: "ETH (BSC)" },
+  maticmainnet: { icon: "matic", label: "MATIC (Mainnet)" },
+  shibbsc: { icon: "shib", label: "SHIB (BSC)" },
+  daiarb: { icon: "dai", label: "DAI (Arbitrum)" },
+};
+
+function getCurrencyIcon(symbol: string): string {
+  return CURRENCY_MAP[symbol.toLowerCase()]?.icon || symbol.toLowerCase();
+}
+
+function getCurrencyLabel(symbol: string): string {
+  return CURRENCY_MAP[symbol.toLowerCase()]?.label || symbol.toUpperCase();
+}
 
 function CryptoIcon({ symbol, size = 24 }: { symbol: string; size?: number }) {
   const [errored, setErrored] = useState(false);
-  const lower = symbol.toLowerCase();
+  const iconName = getCurrencyIcon(symbol);
 
   if (errored) {
     return (
@@ -52,7 +87,7 @@ function CryptoIcon({ symbol, size = 24 }: { symbol: string; size?: number }) {
 
   return (
     <img
-      src={`${CRYPTO_ICON_URL}/${lower}.svg`}
+      src={`${CRYPTO_ICON_URL}/${iconName}.svg`}
       alt={symbol}
       width={size}
       height={size}
@@ -81,7 +116,9 @@ function CurrencyPicker({ currencies, selected, onSelect }: CurrencyPickerProps)
   const filtered = useMemo(() => {
     if (!search) return sorted;
     const q = search.toLowerCase();
-    return sorted.filter((c) => c.toLowerCase().includes(q));
+    return sorted.filter(
+      (c) => c.toLowerCase().includes(q) || getCurrencyLabel(c).toLowerCase().includes(q)
+    );
   }, [sorted, search]);
 
   return (
@@ -94,7 +131,7 @@ function CurrencyPicker({ currencies, selected, onSelect }: CurrencyPickerProps)
         {selected ? (
           <>
             <CryptoIcon symbol={selected} size={20} />
-            <span className="text-sm font-medium text-white uppercase flex-1">{selected}</span>
+            <span className="text-sm font-medium text-white flex-1">{getCurrencyLabel(selected)}</span>
           </>
         ) : (
           <span className="text-sm text-gray-500 flex-1">Select payment currency</span>
@@ -144,7 +181,7 @@ function CurrencyPicker({ currencies, selected, onSelect }: CurrencyPickerProps)
                     }`}
                   >
                     <CryptoIcon symbol={currency} size={18} />
-                    <span className="text-xs font-medium uppercase flex-1">{currency}</span>
+                    <span className="text-xs font-medium flex-1">{getCurrencyLabel(currency)}</span>
                     {selected === currency && <Check className="h-3.5 w-3.5 text-neon" />}
                   </button>
                 ))
@@ -233,7 +270,7 @@ function CheckoutModal({ plan, currencies, loading, onSubscribe, onClose }: Chec
                 onClose();
               }}
             >
-              Pay with {payCurrency ? payCurrency.toUpperCase() : "Crypto"}
+              Pay with {payCurrency ? getCurrencyLabel(payCurrency) : "Crypto"}
             </Button>
           </div>
         </div>
