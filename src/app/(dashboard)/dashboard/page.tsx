@@ -42,9 +42,9 @@ import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
 
 // ── Palette ─────────────────────────────────────────────────────────
 
-const GOLD = "#C9A96E";
-const SAGE = "#6B8F71";
-const WINE = "#9B5858";
+const GOLD = "#D4A574";
+const SAGE = "#5FA88F";
+const WINE = "#B85450";
 
 const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
@@ -120,7 +120,7 @@ function GoldBar({
 }) {
   const pct = Math.min(Math.max((value / max) * 100, 0), 100);
   return (
-    <div className="h-[3px] w-full rounded-full bg-[#1E1C18]">
+    <div className="h-[3px] w-full rounded-full bg-[#2A261F]">
       <motion.div
         className="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold"
         initial={{ width: 0 }}
@@ -137,8 +137,8 @@ function ChartTooltip({ active, payload, label }: any) {
   const val = payload[0].value as number;
   const pos = val >= 0;
   return (
-    <div className="rounded-lg border border-gold/10 bg-[#1A1714] px-4 py-2.5 shadow-xl">
-      <p className="font-serif text-[10px] text-[#8A8578]">
+    <div className="rounded-lg border border-gold/10 bg-[#1A1815] px-4 py-2.5 shadow-xl">
+      <p className="font-serif text-[10px] text-[#A09A90]">
         {formatChartDate(String(label))}
       </p>
       <p
@@ -153,9 +153,9 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 const STRAT_DOT: Record<string, string> = {
-  conservative: "bg-[#6B7FA5]",
-  moderate: "bg-[#8A7BAD]",
-  aggressive: "bg-[#9B5858]",
+  conservative: "bg-[#7B8DB8]",
+  moderate: "bg-[#9B86C0]",
+  aggressive: "bg-[#B85450]",
   custom: "bg-gold",
 };
 
@@ -240,7 +240,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#5C574D]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#716B63]">
             Welcome Back
           </p>
           <h1 className="mt-2 font-serif text-3xl font-medium text-cream">
@@ -249,7 +249,7 @@ export default function DashboardPage() {
           </h1>
           <div className="mx-auto mt-3 flex max-w-xs items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold/20" />
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#5C574D]">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#716B63]">
               {dateStr}
             </p>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold/20" />
@@ -265,7 +265,7 @@ export default function DashboardPage() {
             </Link>
             <Link
               href="/analytics"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs text-[#8A8578] transition-colors duration-300 hover:text-cream"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs text-[#A09A90] transition-colors duration-300 hover:text-cream"
             >
               <BarChart3 className="h-3.5 w-3.5" /> Analytics
             </Link>
@@ -283,8 +283,8 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
                 Total PnL
               </p>
               <p
@@ -308,8 +308,8 @@ export default function DashboardPage() {
                   {returnPct >= 0 ? "+" : ""}
                   {returnPct.toFixed(1)}%
                 </span>
-                <span className="text-[10px] text-[#3A3530]">&middot;</span>
-                <span className="text-[10px] text-[#5C574D]">
+                <span className="text-[10px] text-[#4A453E]">&middot;</span>
+                <span className="text-[10px] text-[#716B63]">
                   {chartPeriod} days
                 </span>
               </div>
@@ -323,8 +323,8 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
                 Win Rate
               </p>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
@@ -335,7 +335,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-2">
                 {overview && overview.profit_factor > 0 && (
-                  <span className="text-[11px] text-[#8A8578]">
+                  <span className="text-[11px] text-[#A09A90]">
                     Profit Factor{" "}
                     <span className="text-gold">
                       {overview.profit_factor.toFixed(2)}
@@ -353,8 +353,8 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
                 Sharpe Ratio
               </p>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                 )}
                 {overview && overview.max_drawdown > 0 && (
                   <>
-                    <span className="text-[10px] text-[#3A3530]">
+                    <span className="text-[10px] text-[#4A453E]">
                       &middot;
                     </span>
                     <span className="text-[10px]" style={{ color: WINE }}>
@@ -392,23 +392,23 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
                 Activity
               </p>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
                 {activeStrategies.length}
-                <span className="ml-1 font-sans text-sm font-normal text-[#5C574D]">
+                <span className="ml-1 font-sans text-sm font-normal text-[#716B63]">
                   / {strategies.length}
                 </span>
               </p>
               <div className="my-3 h-px bg-gold/[0.08]" />
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-[11px] text-[#8A8578]">
+                <span className="flex items-center gap-1.5 text-[11px] text-[#A09A90]">
                   <Zap className="h-2.5 w-2.5 text-gold/50" />
                   {liveSignals} signals
                 </span>
-                <span className="flex items-center gap-1.5 text-[11px] text-[#8A8578]">
+                <span className="flex items-center gap-1.5 text-[11px] text-[#A09A90]">
                   <Activity className="h-2.5 w-2.5 text-gold/50" />
                   {overview?.total_trades ?? 0} trades
                 </span>
@@ -429,7 +429,7 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
               <div className="mb-6 flex items-center justify-between">
                 <SectionLabel>Portfolio Performance</SectionLabel>
                 <div className="flex items-center">
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                       className={`border-b-2 px-3 py-1.5 text-[11px] font-medium tracking-wider transition-all duration-300 ${
                         chartPeriod === d
                           ? "border-gold/40 text-gold"
-                          : "border-transparent text-[#5C574D] hover:text-[#8A8578]"
+                          : "border-transparent text-[#716B63] hover:text-[#A09A90]"
                       }`}
                     >
                       {d}D
@@ -451,11 +451,11 @@ export default function DashboardPage() {
 
               {equityCurve.length === 0 ? (
                 <div className="flex h-[260px] flex-col items-center justify-center text-center">
-                  <BarChart3 className="mb-3 h-8 w-8 text-[#2A2520]" />
-                  <p className="font-serif text-sm text-[#5C574D]">
+                  <BarChart3 className="mb-3 h-8 w-8 text-[#3A352F]" />
+                  <p className="font-serif text-sm text-[#716B63]">
                     No equity data yet
                   </p>
-                  <p className="mt-1 text-[11px] text-[#3A3530]">
+                  <p className="mt-1 text-[11px] text-[#4A453E]">
                     Begin trading to chart your journey
                   </p>
                 </div>
@@ -487,18 +487,18 @@ export default function DashboardPage() {
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(201,169,110,0.04)"
+                      stroke="rgba(212,165,116,0.04)"
                     />
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={formatChartDate}
-                      tick={{ fill: "#5C574D", fontSize: 10 }}
-                      axisLine={{ stroke: "rgba(201,169,110,0.08)" }}
+                      tick={{ fill: "#716B63", fontSize: 10 }}
+                      axisLine={{ stroke: "rgba(212,165,116,0.08)" }}
                       tickLine={false}
                     />
                     <YAxis
                       tickFormatter={formatChartValue}
-                      tick={{ fill: "#5C574D", fontSize: 10 }}
+                      tick={{ fill: "#716B63", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
                       width={72}
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                       activeDot={{
                         r: 3.5,
                         fill: chartColor,
-                        stroke: "#13110F",
+                        stroke: "#12100D",
                         strokeWidth: 2,
                       }}
                     />
@@ -531,13 +531,13 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="flex h-full flex-col rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+            <div className="flex h-full flex-col rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
               <SectionLabel>Strategies</SectionLabel>
 
               {strategies.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-                  <Brain className="mb-3 h-7 w-7 text-[#2A2520]" />
-                  <p className="font-serif text-sm text-[#5C574D]">
+                  <Brain className="mb-3 h-7 w-7 text-[#3A352F]" />
+                  <p className="font-serif text-sm text-[#716B63]">
                     No strategies yet
                   </p>
                   <Link
@@ -567,7 +567,7 @@ export default function DashboardPage() {
                           />
                           <div>
                             <p className="text-sm text-cream">{s.name}</p>
-                            <p className="text-[10px] uppercase tracking-wider text-[#5C574D]">
+                            <p className="text-[10px] uppercase tracking-wider text-[#716B63]">
                               {s.strategy_type}
                               {s.is_active && (
                                 <span className="ml-2 normal-case tracking-normal text-gold/50">
@@ -577,14 +577,14 @@ export default function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 text-[#2A2520] transition-colors duration-300 group-hover:text-[#5C574D]" />
+                        <ChevronRight className="h-3.5 w-3.5 text-[#3A352F] transition-colors duration-300 group-hover:text-[#716B63]" />
                       </Link>
                     );
                   })}
                   {strategies.length > 5 && (
                     <Link
                       href="/strategies"
-                      className="mt-3 block text-center text-[10px] text-[#5C574D] transition-colors duration-300 hover:text-[#8A8578]"
+                      className="mt-3 block text-center text-[10px] text-[#716B63] transition-colors duration-300 hover:text-[#A09A90]"
                     >
                       View all {strategies.length} strategies
                     </Link>
@@ -607,18 +607,18 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="overflow-hidden rounded-xl border border-gold/[0.08] bg-[#13110F]/90 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-xl border border-gold/[0.08] bg-[#12100D]/90 backdrop-blur-sm">
               <div className="p-6 pb-4">
                 <SectionLabel>Recent Trades</SectionLabel>
               </div>
 
               {executions.length === 0 ? (
                 <div className="px-6 pb-8 pt-2 text-center">
-                  <Zap className="mx-auto mb-3 h-7 w-7 text-[#2A2520]" />
-                  <p className="font-serif text-sm text-[#5C574D]">
+                  <Zap className="mx-auto mb-3 h-7 w-7 text-[#3A352F]" />
+                  <p className="font-serif text-sm text-[#716B63]">
                     No trades recorded
                   </p>
-                  <p className="mt-1 text-[11px] text-[#3A3530]">
+                  <p className="mt-1 text-[11px] text-[#4A453E]">
                     Activate a strategy to begin
                   </p>
                 </div>
@@ -627,16 +627,16 @@ export default function DashboardPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gold/[0.06]">
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
                           Direction
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
                           Entry
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
                           PnL
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
                           Status
                         </th>
                         <th className="w-10 px-6 py-2.5" />
@@ -659,7 +659,7 @@ export default function DashboardPage() {
                                 {exec.direction}
                               </span>
                             </td>
-                            <td className="px-6 py-3.5 font-mono text-xs text-[#8A8578]">
+                            <td className="px-6 py-3.5 font-mono text-xs text-[#A09A90]">
                               {formatCurrency(exec.entry_price)}
                             </td>
                             <td
@@ -667,7 +667,7 @@ export default function DashboardPage() {
                               style={{
                                 color:
                                   exec.pnl == null
-                                    ? "#5C574D"
+                                    ? "#716B63"
                                     : exec.pnl >= 0
                                       ? SAGE
                                       : WINE,
@@ -684,12 +684,12 @@ export default function DashboardPage() {
                                   href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[#3A3530] transition-colors duration-300 hover:text-gold"
+                                  className="text-[#4A453E] transition-colors duration-300 hover:text-gold"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                               ) : (
-                                <span className="text-[#1E1C18]">&mdash;</span>
+                                <span className="text-[#2A261F]">&mdash;</span>
                               )}
                             </td>
                           </tr>
@@ -700,7 +700,7 @@ export default function DashboardPage() {
                   <div className="px-6 py-3 text-right">
                     <Link
                       href="/executions"
-                      className="text-[11px] text-[#5C574D] transition-colors duration-300 hover:text-gold"
+                      className="text-[11px] text-[#716B63] transition-colors duration-300 hover:text-gold"
                     >
                       View all trades &rarr;
                     </Link>
@@ -717,7 +717,7 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="h-full rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+            <div className="h-full rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
               <div className="mb-5 flex items-center justify-between">
                 <SectionLabel>Market</SectionLabel>
                 <span className="flex items-center gap-1.5 text-[10px]">
@@ -727,7 +727,7 @@ export default function DashboardPage() {
                       Live
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[#3A3530]">
+                    <span className="flex items-center gap-1 text-[#4A453E]">
                       <WifiOff className="h-2.5 w-2.5" />
                     </span>
                   )}
@@ -736,8 +736,8 @@ export default function DashboardPage() {
 
               {marketTokens.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Wifi className="mb-2 h-5 w-5 text-[#2A2520]" />
-                  <p className="text-xs text-[#5C574D]">
+                  <Wifi className="mb-2 h-5 w-5 text-[#3A352F]" />
+                  <p className="text-xs text-[#716B63]">
                     {connected ? "No movers" : "Connecting\u2026"}
                   </p>
                 </div>
@@ -761,7 +761,7 @@ export default function DashboardPage() {
                           <p className="text-xs font-medium text-cream">
                             {token.symbol}
                           </p>
-                          <p className="font-mono text-[10px] text-[#3A3530]">
+                          <p className="font-mono text-[10px] text-[#4A453E]">
                             {formatPrice(token.midPrice)}
                           </p>
                         </div>
@@ -773,7 +773,7 @@ export default function DashboardPage() {
                             {isUp ? "+" : ""}
                             {formatNumber(token.change24h)}%
                           </span>
-                          <p className="text-[9px] text-[#3A3530]">
+                          <p className="text-[9px] text-[#4A453E]">
                             {formatCompact(token.dayNtlVlm)}
                           </p>
                         </div>
