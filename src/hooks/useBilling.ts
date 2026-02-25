@@ -10,6 +10,7 @@ export default function useBilling() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [currencies, setCurrencies] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currenciesLoading, setCurrenciesLoading] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true);
@@ -33,12 +34,17 @@ export default function useBilling() {
   }, []);
 
   const fetchCurrencies = useCallback(async () => {
+    setCurrenciesLoading(true);
     try {
       const { data } = await api.get<string[]>(ENDPOINTS.BILLING.CURRENCIES);
-      setCurrencies(data);
+      setCurrencies(Array.isArray(data) ? data : []);
       return data;
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch currencies:", err);
+      toast.error("Failed to load payment currencies. Please try again.");
       return [];
+    } finally {
+      setCurrenciesLoading(false);
     }
   }, []);
 
@@ -76,6 +82,7 @@ export default function useBilling() {
     payments,
     currencies,
     loading,
+    currenciesLoading,
     fetchPlans,
     fetchSubscription,
     fetchCurrencies,

@@ -197,13 +197,21 @@ function CurrencyPicker({ currencies, selected, onSelect }: CurrencyPickerProps)
 interface CheckoutModalProps {
   plan: Plan;
   currencies: string[];
+  currenciesLoading: boolean;
   loading: boolean;
+  onLoadCurrencies: () => void;
   onSubscribe: (planId: string, payCurrency?: string) => Promise<unknown>;
   onClose: () => void;
 }
 
-function CheckoutModal({ plan, currencies, loading, onSubscribe, onClose }: CheckoutModalProps) {
+function CheckoutModal({ plan, currencies, currenciesLoading, loading, onLoadCurrencies, onSubscribe, onClose }: CheckoutModalProps) {
   const [payCurrency, setPayCurrency] = useState("");
+
+  useEffect(() => {
+    if (currencies.length === 0 && !currenciesLoading) {
+      onLoadCurrencies();
+    }
+  }, [currencies.length, currenciesLoading, onLoadCurrencies]);
 
   return (
     <>
@@ -250,7 +258,25 @@ function CheckoutModal({ plan, currencies, loading, onSubscribe, onClose }: Chec
           {/* Currency Selection */}
           <div className="px-6 py-4 space-y-3">
             <label className="block text-xs font-medium text-gray-400">Payment Currency</label>
-            <CurrencyPicker currencies={currencies} selected={payCurrency} onSelect={setPayCurrency} />
+            {currenciesLoading ? (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-dark-200/80 border border-white/10">
+                <Loader2 className="h-4 w-4 text-gray-500 animate-spin" />
+                <span className="text-sm text-gray-500">Loading currencies...</span>
+              </div>
+            ) : currencies.length === 0 ? (
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-500/5 border border-red-500/10">
+                <span className="text-xs text-red-400">Failed to load currencies</span>
+                <button
+                  type="button"
+                  onClick={onLoadCurrencies}
+                  className="text-xs text-neon hover:underline"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <CurrencyPicker currencies={currencies} selected={payCurrency} onSelect={setPayCurrency} />
+            )}
             <p className="text-[10px] text-gray-600">
               You&apos;ll be redirected to NOWPayments to complete the transaction securely.
             </p>
@@ -286,6 +312,7 @@ export default function BillingPage() {
     payments,
     currencies,
     loading,
+    currenciesLoading,
     fetchPlans,
     fetchSubscription,
     fetchCurrencies,
@@ -499,7 +526,9 @@ export default function BillingPage() {
           <CheckoutModal
             plan={checkoutPlan}
             currencies={currencies}
+            currenciesLoading={currenciesLoading}
             loading={loading}
+            onLoadCurrencies={fetchCurrencies}
             onSubscribe={subscribe}
             onClose={() => setCheckoutPlan(null)}
           />
