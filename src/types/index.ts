@@ -187,6 +187,7 @@ export interface Subscription {
   expires_at: string | null;
   grace_until: string | null;
   nowpayments_invoice_id: string | null;
+  invoice_url: string | null;
   plan: Plan | null;
   created_at: string;
 }

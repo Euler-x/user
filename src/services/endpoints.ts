@@ -49,6 +49,7 @@ export const ENDPOINTS = {
 
   // Billing
   BILLING: {
+    CURRENCIES: `${API}/billing/currencies`,
     PLANS: `${API}/billing/plans`,
     SUBSCRIBE: `${API}/billing/subscribe`,
     SUBSCRIPTION: `${API}/billing/subscription`,

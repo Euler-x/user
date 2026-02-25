@@ -1,8 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion } from "framer-motion";
-import { Check, CreditCard, Zap } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Check,
+  CreditCard,
+  Zap,
+  X,
+  Search,
+  ExternalLink,
+  ChevronDown,
+  Loader2,
+  Crown,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import GlowCard from "@/components/ui/GlowCard";
 import Card from "@/components/ui/Card";
@@ -12,17 +25,252 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { PageSpinner } from "@/components/ui/Spinner";
 import useBilling from "@/hooks/useBilling";
 import { formatCurrency, formatDate, capitalize } from "@/lib/utils";
+import type { Plan } from "@/types";
+
+const CRYPTO_ICON_URL = "https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color";
+
+// Popular currencies shown first in the picker
+const POPULAR_CURRENCIES = [
+  "btc", "eth", "usdt", "usdc", "sol", "bnb", "xrp", "doge", "matic", "ltc",
+  "trx", "avax", "dot", "ada", "shib", "dai",
+];
+
+function CryptoIcon({ symbol, size = 24 }: { symbol: string; size?: number }) {
+  const [errored, setErrored] = useState(false);
+  const lower = symbol.toLowerCase();
+
+  if (errored) {
+    return (
+      <div
+        className="rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase flex-shrink-0"
+        style={{ width: size, height: size }}
+      >
+        {symbol.slice(0, 2)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={`${CRYPTO_ICON_URL}/${lower}.svg`}
+      alt={symbol}
+      width={size}
+      height={size}
+      className="rounded-full flex-shrink-0"
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
+interface CurrencyPickerProps {
+  currencies: string[];
+  selected: string;
+  onSelect: (currency: string) => void;
+}
+
+function CurrencyPicker({ currencies, selected, onSelect }: CurrencyPickerProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const sorted = useMemo(() => {
+    const popular = POPULAR_CURRENCIES.filter((c) => currencies.includes(c));
+    const rest = currencies.filter((c) => !POPULAR_CURRENCIES.includes(c)).sort();
+    return [...popular, ...rest];
+  }, [currencies]);
+
+  const filtered = useMemo(() => {
+    if (!search) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter((c) => c.toLowerCase().includes(q));
+  }, [sorted, search]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2.5 w-full px-4 py-3 rounded-xl bg-dark-200/80 border border-white/10 hover:border-neon/30 transition-colors text-left"
+      >
+        {selected ? (
+          <>
+            <CryptoIcon symbol={selected} size={20} />
+            <span className="text-sm font-medium text-white uppercase flex-1">{selected}</span>
+          </>
+        ) : (
+          <span className="text-sm text-gray-500 flex-1">Select payment currency</span>
+        )}
+        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 top-full left-0 right-0 mt-2 rounded-xl bg-dark-200 border border-white/10 shadow-2xl overflow-hidden"
+          >
+            <div className="p-2 border-b border-white/5">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search currency..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-white/[0.03] border border-white/5 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-neon/30"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="max-h-60 overflow-y-auto scrollbar-none p-1">
+              {filtered.length === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-4">No currencies found</p>
+              ) : (
+                filtered.map((currency) => (
+                  <button
+                    key={currency}
+                    type="button"
+                    onClick={() => {
+                      onSelect(currency);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-left transition-colors ${
+                      selected === currency
+                        ? "bg-neon/10 text-neon"
+                        : "text-gray-300 hover:bg-white/[0.03] hover:text-white"
+                    }`}
+                  >
+                    <CryptoIcon symbol={currency} size={18} />
+                    <span className="text-xs font-medium uppercase flex-1">{currency}</span>
+                    {selected === currency && <Check className="h-3.5 w-3.5 text-neon" />}
+                  </button>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+interface CheckoutModalProps {
+  plan: Plan;
+  currencies: string[];
+  loading: boolean;
+  onSubscribe: (planId: string, payCurrency?: string) => Promise<unknown>;
+  onClose: () => void;
+}
+
+function CheckoutModal({ plan, currencies, loading, onSubscribe, onClose }: CheckoutModalProps) {
+  const [payCurrency, setPayCurrency] = useState("");
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        <div className="w-full max-w-md bg-dark-200 border border-white/10 rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/5">
+            <div>
+              <h3 className="text-lg font-bold text-white">Complete Payment</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Choose your preferred cryptocurrency</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Plan Summary */}
+          <div className="px-6 py-4 border-b border-white/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">Plan</p>
+                <p className="text-sm font-semibold text-white mt-0.5">{plan.name}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500 uppercase tracking-wider">Amount</p>
+                <p className="text-lg font-bold text-neon mt-0.5">{formatCurrency(plan.price_usd)}</p>
+                <p className="text-[10px] text-gray-500">/{plan.billing_cycle}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Currency Selection */}
+          <div className="px-6 py-4 space-y-3">
+            <label className="block text-xs font-medium text-gray-400">Payment Currency</label>
+            <CurrencyPicker currencies={currencies} selected={payCurrency} onSelect={setPayCurrency} />
+            <p className="text-[10px] text-gray-600">
+              You&apos;ll be redirected to NOWPayments to complete the transaction securely.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="px-6 pb-5 pt-2 flex gap-3">
+            <Button variant="secondary" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              loading={loading}
+              disabled={!payCurrency}
+              onClick={async () => {
+                await onSubscribe(plan.id, payCurrency);
+                onClose();
+              }}
+            >
+              Pay with {payCurrency ? payCurrency.toUpperCase() : "Crypto"}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
 
 export default function BillingPage() {
-  const { plans, subscription, payments, loading, fetchPlans, fetchSubscription, fetchPayments, subscribe } = useBilling();
+  const {
+    plans,
+    subscription,
+    payments,
+    currencies,
+    loading,
+    fetchPlans,
+    fetchSubscription,
+    fetchCurrencies,
+    fetchPayments,
+    subscribe,
+  } = useBilling();
+
+  const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
 
   useEffect(() => {
     fetchPlans();
     fetchSubscription();
     fetchPayments();
-  }, [fetchPlans, fetchSubscription, fetchPayments]);
+    fetchCurrencies();
+  }, [fetchPlans, fetchSubscription, fetchPayments, fetchCurrencies]);
 
   if (loading && plans.length === 0) return <PageSpinner />;
+
+  const hasActiveSub = subscription?.status === "active";
+  const hasPendingPayment = subscription?.status === "pending_payment";
 
   return (
     <PageTransition>
@@ -32,22 +280,84 @@ export default function BillingPage() {
           <p className="text-sm text-gray-400 mt-1">Manage your subscription and payments</p>
         </div>
 
+        {/* Payment Status Banner */}
+        <AnimatePresence>
+          {paymentStatus === "success" && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <Card className="border-neon/20 bg-neon/5">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-neon flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-white">Payment submitted!</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Your payment is being confirmed. Your subscription will activate once the transaction is verified on-chain.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+          {paymentStatus === "cancelled" && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <Card className="border-red-500/20 bg-red-500/5">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-white">Payment cancelled</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Your payment was cancelled. You can try again anytime by selecting a plan below.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Current Subscription */}
         {subscription && (
           <Card>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider">Current Plan</p>
-                <p className="text-xl font-bold text-white mt-1">
-                  {subscription.plan?.name || "Unknown Plan"}
-                </p>
-                {subscription.expires_at && (
-                  <p className="text-sm text-gray-400 mt-1">
-                    Expires {formatDate(subscription.expires_at)}
-                  </p>
+              <div className="flex items-center gap-3">
+                {hasActiveSub && (
+                  <div className="h-10 w-10 rounded-xl bg-neon/10 flex items-center justify-center">
+                    <Crown className="h-5 w-5 text-neon" />
+                  </div>
                 )}
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Current Plan</p>
+                  <p className="text-xl font-bold text-white mt-0.5">
+                    {subscription.plan?.name || "Unknown Plan"}
+                  </p>
+                  {subscription.expires_at && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      {hasActiveSub ? "Renews" : "Expires"} {formatDate(subscription.expires_at)}
+                    </p>
+                  )}
+                </div>
               </div>
-              <StatusBadge status={subscription.status} />
+              <div className="flex items-center gap-3">
+                {hasPendingPayment && subscription.invoice_url && (
+                  <a
+                    href={subscription.invoice_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon/10 text-neon text-xs font-medium hover:bg-neon/20 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Complete Payment
+                  </a>
+                )}
+                <StatusBadge status={subscription.status} />
+              </div>
             </div>
           </Card>
         )}
@@ -57,7 +367,7 @@ export default function BillingPage() {
           <h2 className="text-lg font-semibold text-white mb-4">Available Plans</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {plans.map((plan, i) => {
-              const isCurrentPlan = subscription?.plan_id === plan.id && subscription.status === "active";
+              const isCurrentPlan = subscription?.plan_id === plan.id && hasActiveSub;
               return (
                 <motion.div
                   key={plan.id}
@@ -99,8 +409,8 @@ export default function BillingPage() {
                     <Button
                       className="w-full"
                       variant={isCurrentPlan ? "secondary" : "primary"}
-                      disabled={isCurrentPlan}
-                      onClick={() => subscribe(plan.id)}
+                      disabled={isCurrentPlan || loading}
+                      onClick={() => setCheckoutPlan(plan)}
                     >
                       {isCurrentPlan ? "Current Plan" : "Subscribe"}
                     </Button>
@@ -120,10 +430,21 @@ export default function BillingPage() {
                 {payments.map((payment) => (
                   <div key={payment.id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <CreditCard className="h-4 w-4 text-gray-500" />
+                      {payment.crypto_currency ? (
+                        <CryptoIcon symbol={payment.crypto_currency} size={20} />
+                      ) : (
+                        <CreditCard className="h-5 w-5 text-gray-500" />
+                      )}
                       <div>
                         <p className="text-sm text-white">{formatCurrency(payment.amount_usd)}</p>
-                        <p className="text-xs text-gray-500">{formatDate(payment.created_at)}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(payment.created_at)}
+                          {payment.crypto_currency && (
+                            <span className="ml-1.5 text-gray-600">
+                              via {payment.crypto_currency.toUpperCase()}
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                     <StatusBadge status={payment.status} />
@@ -134,6 +455,19 @@ export default function BillingPage() {
           </div>
         )}
       </div>
+
+      {/* Checkout Modal */}
+      <AnimatePresence>
+        {checkoutPlan && (
+          <CheckoutModal
+            plan={checkoutPlan}
+            currencies={currencies}
+            loading={loading}
+            onSubscribe={subscribe}
+            onClose={() => setCheckoutPlan(null)}
+          />
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 }
