@@ -28,7 +28,6 @@ import {
   ChevronRight,
   Plus,
   Shield,
-  Flame,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { PageSpinner } from "@/components/ui/Spinner";
@@ -40,6 +39,12 @@ import useAnalytics from "@/hooks/useAnalytics";
 import useMarketData from "@/hooks/useMarketData";
 import { useAuthStore } from "@/stores/authStore";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
+
+// ── Palette ─────────────────────────────────────────────────────────
+
+const GOLD = "#C9A96E";
+const SAGE = "#6B8F71";
+const WINE = "#9B5858";
 
 const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
@@ -63,9 +68,9 @@ function formatPrice(price: number): string {
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
 }
 
 function formatChartDate(iso: string) {
@@ -83,72 +88,48 @@ function formatChartValue(value: number) {
   })}`;
 }
 
-// ── Animation variants ──────────────────────────────────────────────
+// ── Animation ───────────────────────────────────────────────────────
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+const fadeIn = {
+  hidden: { opacity: 0 },
   show: (i: number) => ({
     opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.07,
-      duration: 0.55,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
+    transition: { delay: i * 0.1, duration: 0.8, ease: "easeOut" },
   }),
 };
 
-// ── Win Rate Ring ───────────────────────────────────────────────────
+// ── Sub-components ──────────────────────────────────────────────────
 
-function WinRateRing({ rate, size = 54 }: { rate: number; size?: number }) {
-  const sw = 4.5;
-  const r = (size - sw) / 2;
-  const c = 2 * Math.PI * r;
-  const p = (Math.min(Math.max(rate, 0), 100) / 100) * c;
-
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="relative flex-shrink-0"
-      style={{ width: size, height: size }}
-    >
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth={sw}
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="url(#wrGrad)"
-          strokeWidth={sw}
-          strokeLinecap="round"
-          initial={{ strokeDasharray: `0 ${c}` }}
-          animate={{ strokeDasharray: `${p} ${c}` }}
-          transition={{ duration: 1.4, ease: "easeOut", delay: 0.5 }}
-        />
-        <defs>
-          <linearGradient id="wrGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3B82F6" />
-            <stop offset="100%" stopColor="#818CF8" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[11px] font-bold text-white">
-          {rate.toFixed(0)}%
-        </span>
-      </div>
+    <div className="mb-5 flex items-center gap-4">
+      <h2 className="whitespace-nowrap font-serif text-lg text-cream">
+        {children}
+      </h2>
+      <div className="h-px flex-1 bg-gradient-to-r from-gold/15 to-transparent" />
     </div>
   );
 }
 
-// ── Chart Tooltip ───────────────────────────────────────────────────
+function GoldBar({
+  value,
+  max = 100,
+}: {
+  value: number;
+  max?: number;
+}) {
+  const pct = Math.min(Math.max((value / max) * 100, 0), 100);
+  return (
+    <div className="h-[3px] w-full rounded-full bg-[#1E1C18]">
+      <motion.div
+        className="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold"
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 1.4, ease: "easeOut", delay: 0.5 }}
+      />
+    </div>
+  );
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltip({ active, payload, label }: any) {
@@ -156,12 +137,13 @@ function ChartTooltip({ active, payload, label }: any) {
   const val = payload[0].value as number;
   const pos = val >= 0;
   return (
-    <div className="bg-dark-200 border border-white/10 rounded-xl px-4 py-2.5 shadow-2xl">
-      <p className="text-[10px] text-slate-400 mb-0.5">
+    <div className="rounded-lg border border-gold/10 bg-[#1A1714] px-4 py-2.5 shadow-xl">
+      <p className="font-serif text-[10px] text-[#8A8578]">
         {formatChartDate(String(label))}
       </p>
       <p
-        className={`text-sm font-bold ${pos ? "text-neon" : "text-rose-400"}`}
+        className="mt-0.5 font-serif text-sm font-semibold"
+        style={{ color: pos ? GOLD : WINE }}
       >
         {pos ? "+" : ""}
         {formatCurrency(Math.abs(val))}
@@ -170,36 +152,15 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-// ── Strategy theme map ──────────────────────────────────────────────
-
-const STRAT_THEME: Record<
-  string,
-  { icon: string; bg: string; border: string }
-> = {
-  conservative: {
-    icon: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-l-blue-500",
-  },
-  moderate: {
-    icon: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-l-violet-500",
-  },
-  aggressive: {
-    icon: "text-rose-400",
-    bg: "bg-rose-500/10",
-    border: "border-l-rose-500",
-  },
-  custom: {
-    icon: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-l-emerald-500",
-  },
+const STRAT_DOT: Record<string, string> = {
+  conservative: "bg-[#6B7FA5]",
+  moderate: "bg-[#8A7BAD]",
+  aggressive: "bg-[#9B5858]",
+  custom: "bg-gold",
 };
 
 // ═════════════════════════════════════════════════════════════════════
-// ── Dashboard Page ──────────────────────────────────────────────────
+// ── Dashboard ───────────────────────────────────────────────────────
 // ═════════════════════════════════════════════════════════════════════
 
 export default function DashboardPage() {
@@ -222,7 +183,6 @@ export default function DashboardPage() {
   const [liveSignals, setLiveSignals] = useState(0);
   const [chartPeriod, setChartPeriod] = useState<30 | 90>(30);
 
-  // ── Initial data fetch ──
   useEffect(() => {
     fetchStrategies();
     fetchSignals({ page: 1, page_size: 5 }).then(
@@ -231,17 +191,14 @@ export default function DashboardPage() {
     fetchExecutions({ page: 1, page_size: 5 });
   }, [fetchStrategies, fetchSignals, fetchExecutions]);
 
-  // ── Chart data (responds to period change) ──
   useEffect(() => {
     fetchOverview(chartPeriod);
     fetchEquityCurve({ days: chartPeriod });
   }, [chartPeriod, fetchOverview, fetchEquityCurve]);
 
-  // ── Loading state ──
   const loading = stratLoading || sigLoading || execLoading;
   if (loading && strategies.length === 0) return <PageSpinner />;
 
-  // ── Computed values ──
   const activeStrategies = strategies.filter((s) => s.is_active);
   const totalPnl =
     overview?.total_pnl ??
@@ -255,8 +212,8 @@ export default function DashboardPage() {
   const chartColor =
     equityCurve.length > 0 &&
     equityCurve[equityCurve.length - 1]?.cumulative_pnl >= 0
-      ? "#39FF14"
-      : "#FB7185";
+      ? GOLD
+      : WINE;
   const userName = user?.email?.split("@")[0] ?? null;
   const dateStr = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -270,37 +227,45 @@ export default function DashboardPage() {
 
   return (
     <PageTransition>
-      <div className="relative space-y-6">
-        {/* ── Ambient glow ── */}
-        <div className="pointer-events-none absolute -top-24 left-1/4 h-[500px] w-[500px] rounded-full bg-neon/[0.02] blur-[120px]" />
-        <div className="pointer-events-none absolute -top-24 right-1/4 h-[400px] w-[400px] rounded-full bg-blue-500/[0.03] blur-[120px]" />
+      <div className="relative space-y-8">
+        {/* ── Warm ambient glow ── */}
+        <div className="pointer-events-none absolute -top-32 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-gold/[0.02] blur-[150px]" />
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* ── Header ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <motion.div
-          className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
         >
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              {getGreeting()}
-              {userName ? `, ${userName}` : ""}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">{dateStr}</p>
+          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#5C574D]">
+            Welcome Back
+          </p>
+          <h1 className="mt-2 font-serif text-3xl font-medium text-cream">
+            {getGreeting()}
+            {userName ? `, ${userName}` : ""}
+          </h1>
+          <div className="mx-auto mt-3 flex max-w-xs items-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold/20" />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#5C574D]">
+              {dateStr}
+            </p>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold/20" />
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Actions */}
+          <div className="mt-6 flex items-center justify-center gap-4">
             <Link
               href="/strategies"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-neon/10 px-3.5 py-2 text-xs font-medium text-neon transition-colors hover:bg-neon/20"
+              className="inline-flex items-center gap-2 rounded-lg border border-gold/15 px-4 py-2 text-xs text-gold transition-all duration-300 hover:border-gold/30 hover:bg-gold/[0.04]"
             >
               <Plus className="h-3.5 w-3.5" /> New Strategy
             </Link>
             <Link
               href="/analytics"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 px-3.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs text-[#8A8578] transition-colors duration-300 hover:text-cream"
             >
               <BarChart3 className="h-3.5 w-3.5" /> Analytics
             </Link>
@@ -308,63 +273,45 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* ── Stats Grid ── */}
+        {/* ── Stat Cards ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {/* ── Total PnL ── */}
           <motion.div
             custom={0}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
-            whileHover={{
-              y: -3,
-              transition: { type: "spring", stiffness: 400, damping: 25 },
-            }}
           >
-            <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-xl">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400 to-teal-400" />
-              <div className="p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10">
-                    {pnlPositive ? (
-                      <TrendingUp className="h-4 w-4 text-emerald-400" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-rose-400" />
-                    )}
-                  </div>
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                    Total PnL
-                  </span>
-                </div>
-                <p
-                  className={`text-2xl font-bold tracking-tight ${
-                    pnlPositive ? "text-neon" : "text-rose-400"
-                  }`}
+            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+                Total PnL
+              </p>
+              <p
+                className="mt-3 font-serif text-2xl font-semibold tracking-tight lg:text-3xl"
+                style={{ color: pnlPositive ? GOLD : WINE }}
+              >
+                {pnlPositive ? "+" : ""}
+                {formatCurrency(totalPnl)}
+              </p>
+              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="flex items-center gap-2">
+                <span
+                  className="flex items-center gap-1 text-[11px] font-medium"
+                  style={{ color: pnlPositive ? SAGE : WINE }}
                 >
-                  {pnlPositive ? "+" : ""}
-                  {formatCurrency(totalPnl)}
-                </p>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      pnlPositive
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-rose-500/10 text-rose-400"
-                    }`}
-                  >
-                    {pnlPositive ? (
-                      <ArrowUpRight className="h-2.5 w-2.5" />
-                    ) : (
-                      <ArrowDownRight className="h-2.5 w-2.5" />
-                    )}
-                    {returnPct >= 0 ? "+" : ""}
-                    {returnPct.toFixed(1)}%
-                  </span>
-                  <span className="text-[10px] text-slate-600">
-                    {chartPeriod}D
-                  </span>
-                </div>
+                  {pnlPositive ? (
+                    <ArrowUpRight className="h-3 w-3" />
+                  ) : (
+                    <ArrowDownRight className="h-3 w-3" />
+                  )}
+                  {returnPct >= 0 ? "+" : ""}
+                  {returnPct.toFixed(1)}%
+                </span>
+                <span className="text-[10px] text-[#3A3530]">&middot;</span>
+                <span className="text-[10px] text-[#5C574D]">
+                  {chartPeriod} days
+                </span>
               </div>
             </div>
           </motion.div>
@@ -372,93 +319,68 @@ export default function DashboardPage() {
           {/* ── Win Rate ── */}
           <motion.div
             custom={1}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
-            whileHover={{
-              y: -3,
-              transition: { type: "spring", stiffness: 400, damping: 25 },
-            }}
           >
-            <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-xl">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-400 to-indigo-500" />
-              <div className="p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10">
-                    <Target className="h-4 w-4 text-blue-400" />
-                  </div>
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                    Win Rate
+            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+                Win Rate
+              </p>
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+                {overview ? `${overview.win_rate.toFixed(1)}%` : "\u2014"}
+              </p>
+              <div className="my-3">
+                <GoldBar value={overview?.win_rate ?? 0} />
+              </div>
+              <div className="flex items-center gap-2">
+                {overview && overview.profit_factor > 0 && (
+                  <span className="text-[11px] text-[#8A8578]">
+                    Profit Factor{" "}
+                    <span className="text-gold">
+                      {overview.profit_factor.toFixed(2)}
+                    </span>
                   </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <WinRateRing rate={overview?.win_rate ?? 0} />
-                  <div>
-                    <p className="text-lg font-bold text-white">
-                      {overview
-                        ? `${overview.win_rate.toFixed(1)}%`
-                        : "\u2014"}
-                    </p>
-                    {overview && overview.profit_factor > 0 && (
-                      <p className="text-[11px] text-slate-500">
-                        PF {overview.profit_factor.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </motion.div>
 
-          {/* ── Sharpe / Risk ── */}
+          {/* ── Sharpe Ratio ── */}
           <motion.div
             custom={2}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
-            whileHover={{
-              y: -3,
-              transition: { type: "spring", stiffness: 400, damping: 25 },
-            }}
           >
-            <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-xl">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-violet-400 to-purple-500" />
-              <div className="p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/10">
-                    <Shield className="h-4 w-4 text-violet-400" />
-                  </div>
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                    Sharpe Ratio
+            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+                Sharpe Ratio
+              </p>
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+                {overview ? overview.sharpe_ratio.toFixed(2) : "\u2014"}
+              </p>
+              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="flex items-center gap-2">
+                {overview && (
+                  <span className="text-[11px] italic text-gold/60">
+                    {overview.sharpe_ratio >= 2
+                      ? "Exceptional"
+                      : overview.sharpe_ratio >= 1
+                        ? "Favorable"
+                        : "Developing"}
                   </span>
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-white">
-                  {overview ? overview.sharpe_ratio.toFixed(2) : "\u2014"}
-                </p>
-                <div className="mt-2.5 flex items-center gap-2">
-                  {overview && (
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                        overview.sharpe_ratio >= 2
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : overview.sharpe_ratio >= 1
-                            ? "bg-blue-500/10 text-blue-400"
-                            : "bg-amber-500/10 text-amber-400"
-                      }`}
-                    >
-                      {overview.sharpe_ratio >= 2
-                        ? "Excellent"
-                        : overview.sharpe_ratio >= 1
-                          ? "Good"
-                          : "Fair"}
+                )}
+                {overview && overview.max_drawdown > 0 && (
+                  <>
+                    <span className="text-[10px] text-[#3A3530]">
+                      &middot;
                     </span>
-                  )}
-                  {overview && overview.max_drawdown > 0 && (
-                    <span className="text-[10px] text-rose-400/70">
+                    <span className="text-[10px]" style={{ color: WINE }}>
                       DD {overview.max_drawdown.toFixed(1)}%
                     </span>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
@@ -466,80 +388,59 @@ export default function DashboardPage() {
           {/* ── Activity ── */}
           <motion.div
             custom={3}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
-            whileHover={{
-              y: -3,
-              transition: { type: "spring", stiffness: 400, damping: 25 },
-            }}
           >
-            <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-xl">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-amber-400 to-orange-500" />
-              <div className="p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10">
-                    <Activity className="h-4 w-4 text-amber-400" />
-                  </div>
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                    Activity
-                  </span>
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-white">
-                  {activeStrategies.length}
-                  <span className="ml-0.5 text-sm font-normal text-slate-500">
-                    /{strategies.length}
-                  </span>
-                </p>
-                <div className="mt-2.5 flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-400" />
-                    </span>
-                    {liveSignals} signals
-                  </span>
-                  <span className="flex items-center gap-1 text-[11px] text-slate-500">
-                    <Flame className="h-2.5 w-2.5 text-orange-400" />{" "}
-                    {overview?.total_trades ?? 0} trades
-                  </span>
-                </div>
+            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8A8578]">
+                Activity
+              </p>
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+                {activeStrategies.length}
+                <span className="ml-1 font-sans text-sm font-normal text-[#5C574D]">
+                  / {strategies.length}
+                </span>
+              </p>
+              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-[11px] text-[#8A8578]">
+                  <Zap className="h-2.5 w-2.5 text-gold/50" />
+                  {liveSignals} signals
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] text-[#8A8578]">
+                  <Activity className="h-2.5 w-2.5 text-gold/50" />
+                  {overview?.total_trades ?? 0} trades
+                </span>
               </div>
             </div>
           </motion.div>
         </div>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* ── Chart + Strategies Row ── */}
+        {/* ── Chart + Strategies ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* ── Equity Curve ── */}
           <motion.div
             className="lg:col-span-2"
             custom={4}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-2xl border border-white/[0.06] bg-dark-200/80 p-5 backdrop-blur-xl">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold text-white">
-                    Portfolio Performance
-                  </h2>
-                  <p className="mt-0.5 text-[11px] text-slate-500">
-                    Cumulative PnL over time
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] p-0.5">
+            <div className="rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <SectionLabel>Portfolio Performance</SectionLabel>
+                <div className="flex items-center">
                   {([30, 90] as const).map((d) => (
                     <button
                       key={d}
                       onClick={() => setChartPeriod(d)}
-                      className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-all ${
+                      className={`border-b-2 px-3 py-1.5 text-[11px] font-medium tracking-wider transition-all duration-300 ${
                         chartPeriod === d
-                          ? "bg-white/10 text-white shadow-sm"
-                          : "text-slate-500 hover:text-slate-300"
+                          ? "border-gold/40 text-gold"
+                          : "border-transparent text-[#5C574D] hover:text-[#8A8578]"
                       }`}
                     >
                       {d}D
@@ -549,24 +450,24 @@ export default function DashboardPage() {
               </div>
 
               {equityCurve.length === 0 ? (
-                <div className="flex h-[250px] flex-col items-center justify-center text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.03]">
-                    <BarChart3 className="h-6 w-6 text-slate-700" />
-                  </div>
-                  <p className="text-sm text-slate-500">No equity data yet</p>
-                  <p className="mt-1 text-[11px] text-slate-600">
-                    Start trading to see your performance curve
+                <div className="flex h-[260px] flex-col items-center justify-center text-center">
+                  <BarChart3 className="mb-3 h-8 w-8 text-[#2A2520]" />
+                  <p className="font-serif text-sm text-[#5C574D]">
+                    No equity data yet
+                  </p>
+                  <p className="mt-1 text-[11px] text-[#3A3530]">
+                    Begin trading to chart your journey
                   </p>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={260}>
                   <AreaChart
                     data={equityCurve}
                     margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
                   >
                     <defs>
                       <linearGradient
-                        id="eqGrad"
+                        id="vintageGrad"
                         x1="0"
                         y1="0"
                         x2="0"
@@ -575,7 +476,7 @@ export default function DashboardPage() {
                         <stop
                           offset="0%"
                           stopColor={chartColor}
-                          stopOpacity={0.2}
+                          stopOpacity={0.12}
                         />
                         <stop
                           offset="100%"
@@ -586,18 +487,18 @@ export default function DashboardPage() {
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(255,255,255,0.04)"
+                      stroke="rgba(201,169,110,0.04)"
                     />
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={formatChartDate}
-                      tick={{ fill: "#475569", fontSize: 10 }}
-                      axisLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                      tick={{ fill: "#5C574D", fontSize: 10 }}
+                      axisLine={{ stroke: "rgba(201,169,110,0.08)" }}
                       tickLine={false}
                     />
                     <YAxis
                       tickFormatter={formatChartValue}
-                      tick={{ fill: "#475569", fontSize: 10 }}
+                      tick={{ fill: "#5C574D", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
                       width={72}
@@ -607,13 +508,13 @@ export default function DashboardPage() {
                       type="monotone"
                       dataKey="cumulative_pnl"
                       stroke={chartColor}
-                      strokeWidth={2}
-                      fill="url(#eqGrad)"
+                      strokeWidth={1.5}
+                      fill="url(#vintageGrad)"
                       dot={false}
                       activeDot={{
-                        r: 4,
+                        r: 3.5,
                         fill: chartColor,
-                        stroke: "#111111",
+                        stroke: "#13110F",
                         strokeWidth: 2,
                       }}
                     />
@@ -623,81 +524,69 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Active Strategies ── */}
+          {/* ── Strategies ── */}
           <motion.div
             custom={5}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
           >
-            <div className="flex h-full flex-col rounded-2xl border border-white/[0.06] bg-dark-200/80 p-5 backdrop-blur-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-white">
-                  Strategies
-                </h2>
-                <Link
-                  href="/strategies"
-                  className="flex items-center gap-1 text-[11px] text-slate-500 transition-colors hover:text-white"
-                >
-                  All <ChevronRight className="h-3 w-3" />
-                </Link>
-              </div>
+            <div className="flex h-full flex-col rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+              <SectionLabel>Strategies</SectionLabel>
 
               {strategies.length === 0 ? (
-                <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.03]">
-                    <Brain className="h-5 w-5 text-slate-700" />
-                  </div>
-                  <p className="text-xs text-slate-500">No strategies yet</p>
+                <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+                  <Brain className="mb-3 h-7 w-7 text-[#2A2520]" />
+                  <p className="font-serif text-sm text-[#5C574D]">
+                    No strategies yet
+                  </p>
                   <Link
                     href="/strategies"
-                    className="mt-1.5 text-[11px] text-neon hover:underline"
+                    className="mt-2 text-[11px] text-gold/70 transition-colors duration-300 hover:text-gold"
                   >
                     Create your first strategy
                   </Link>
                 </div>
               ) : (
-                <div className="flex-1 space-y-1.5">
-                  {strategies.slice(0, 5).map((s) => {
-                    const theme =
-                      STRAT_THEME[s.strategy_type] ?? STRAT_THEME.custom;
+                <div className="flex-1">
+                  {strategies.slice(0, 5).map((s, i) => {
+                    const dot = STRAT_DOT[s.strategy_type] ?? "bg-gold";
                     return (
                       <Link
                         key={s.id}
                         href={`/strategies/${s.id}`}
-                        className={`group flex items-center gap-3 rounded-xl border-l-2 p-3 transition-colors hover:bg-white/[0.02] ${theme.border}`}
+                        className={`group flex items-center justify-between py-3.5 transition-colors duration-300 hover:bg-gold/[0.02] ${
+                          i < Math.min(strategies.length, 5) - 1
+                            ? "border-b border-gold/[0.06]"
+                            : ""
+                        }`}
                       >
-                        <div
-                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${theme.bg}`}
-                        >
-                          <Brain className={`h-3.5 w-3.5 ${theme.icon}`} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-xs font-medium text-white">
-                              {s.name}
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`h-2 w-2 flex-shrink-0 rounded-full ${dot}`}
+                          />
+                          <div>
+                            <p className="text-sm text-cream">{s.name}</p>
+                            <p className="text-[10px] uppercase tracking-wider text-[#5C574D]">
+                              {s.strategy_type}
+                              {s.is_active && (
+                                <span className="ml-2 normal-case tracking-normal text-gold/50">
+                                  &bull; Active
+                                </span>
+                              )}
                             </p>
-                            {s.is_active && (
-                              <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon opacity-75" />
-                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-neon" />
-                              </span>
-                            )}
                           </div>
-                          <p className="text-[10px] capitalize text-slate-500">
-                            {s.strategy_type} &middot; {s.leverage_limit}x
-                          </p>
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-700 transition-colors group-hover:text-slate-400" />
+                        <ChevronRight className="h-3.5 w-3.5 text-[#2A2520] transition-colors duration-300 group-hover:text-[#5C574D]" />
                       </Link>
                     );
                   })}
                   {strategies.length > 5 && (
                     <Link
                       href="/strategies"
-                      className="block pt-2 text-center text-[10px] text-slate-600 transition-colors hover:text-slate-400"
+                      className="mt-3 block text-center text-[10px] text-[#5C574D] transition-colors duration-300 hover:text-[#8A8578]"
                     >
-                      +{strategies.length - 5} more
+                      View all {strategies.length} strategies
                     </Link>
                   )}
                 </div>
@@ -707,110 +596,100 @@ export default function DashboardPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* ── Trades + Market Row ── */}
+        {/* ── Trades + Market ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* ── Recent Trades ── */}
           <motion.div
             className="lg:col-span-2"
             custom={6}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
           >
-            <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-xl">
-              <div className="flex items-center justify-between px-5 pb-3 pt-5">
-                <h2 className="text-sm font-semibold text-white">
-                  Recent Trades
-                </h2>
-                <Link
-                  href="/executions"
-                  className="flex items-center gap-1 text-[11px] text-slate-500 transition-colors hover:text-white"
-                >
-                  View All <ChevronRight className="h-3 w-3" />
-                </Link>
+            <div className="overflow-hidden rounded-xl border border-gold/[0.08] bg-[#13110F]/90 backdrop-blur-sm">
+              <div className="p-6 pb-4">
+                <SectionLabel>Recent Trades</SectionLabel>
               </div>
 
               {executions.length === 0 ? (
-                <div className="px-5 pb-6 pt-4 text-center">
-                  <div className="mx-auto mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03]">
-                    <Zap className="h-5 w-5 text-slate-700" />
-                  </div>
-                  <p className="text-xs text-slate-500">No trades yet</p>
-                  <p className="mt-0.5 text-[10px] text-slate-600">
-                    Activate a strategy to start trading
+                <div className="px-6 pb-8 pt-2 text-center">
+                  <Zap className="mx-auto mb-3 h-7 w-7 text-[#2A2520]" />
+                  <p className="font-serif text-sm text-[#5C574D]">
+                    No trades recorded
+                  </p>
+                  <p className="mt-1 text-[11px] text-[#3A3530]">
+                    Activate a strategy to begin
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/[0.04]">
-                        <th className="px-5 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-slate-600">
+                      <tr className="border-b border-gold/[0.06]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
                           Direction
                         </th>
-                        <th className="px-5 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-slate-600">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
                           Entry
                         </th>
-                        <th className="px-5 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-slate-600">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
                           PnL
                         </th>
-                        <th className="px-5 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-slate-600">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#5C574D]">
                           Status
                         </th>
-                        <th className="w-10 px-5 py-2.5 text-right text-[10px] font-medium uppercase tracking-wider text-slate-600" />
+                        <th className="w-10 px-6 py-2.5" />
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/[0.04]">
+                    <tbody>
                       {executions.slice(0, 5).map((exec) => {
                         const pnl = formatPnl(exec.pnl);
                         const isBuy = exec.direction === "buy";
                         return (
                           <tr
                             key={exec.id}
-                            className="transition-colors hover:bg-white/[0.015]"
+                            className="border-b border-gold/[0.04] transition-colors duration-300 hover:bg-gold/[0.02]"
                           >
-                            <td className="px-5 py-3">
+                            <td className="px-6 py-3.5">
                               <span
-                                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
-                                  isBuy
-                                    ? "bg-emerald-500/10 text-emerald-400"
-                                    : "bg-rose-500/10 text-rose-400"
-                                }`}
+                                className="text-xs font-medium uppercase tracking-wider"
+                                style={{ color: isBuy ? SAGE : WINE }}
                               >
-                                {isBuy ? (
-                                  <ArrowUpRight className="h-3 w-3" />
-                                ) : (
-                                  <ArrowDownRight className="h-3 w-3" />
-                                )}
-                                {exec.direction.toUpperCase()}
+                                {exec.direction}
                               </span>
                             </td>
-                            <td className="px-5 py-3 font-mono text-xs text-slate-300">
+                            <td className="px-6 py-3.5 font-mono text-xs text-[#8A8578]">
                               {formatCurrency(exec.entry_price)}
                             </td>
                             <td
-                              className={`px-5 py-3 text-xs font-semibold ${pnl.color}`}
+                              className="px-6 py-3.5 font-serif text-xs font-medium"
+                              style={{
+                                color:
+                                  exec.pnl == null
+                                    ? "#5C574D"
+                                    : exec.pnl >= 0
+                                      ? SAGE
+                                      : WINE,
+                              }}
                             >
                               {pnl.text}
                             </td>
-                            <td className="px-5 py-3">
+                            <td className="px-6 py-3.5">
                               <StatusBadge status={exec.status} />
                             </td>
-                            <td className="px-5 py-3 text-right">
+                            <td className="px-6 py-3.5 text-right">
                               {exec.tx_hash ? (
                                 <a
                                   href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.03] text-slate-500 transition-all hover:bg-neon/10 hover:text-neon"
+                                  className="text-[#3A3530] transition-colors duration-300 hover:text-gold"
                                 >
-                                  <ExternalLink className="h-3 w-3" />
+                                  <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                               ) : (
-                                <span className="text-slate-800">
-                                  &mdash;
-                                </span>
+                                <span className="text-[#1E1C18]">&mdash;</span>
                               )}
                             </td>
                           </tr>
@@ -818,6 +697,14 @@ export default function DashboardPage() {
                       })}
                     </tbody>
                   </table>
+                  <div className="px-6 py-3 text-right">
+                    <Link
+                      href="/executions"
+                      className="text-[11px] text-[#5C574D] transition-colors duration-300 hover:text-gold"
+                    >
+                      View all trades &rarr;
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -826,85 +713,69 @@ export default function DashboardPage() {
           {/* ── Market Movers ── */}
           <motion.div
             custom={7}
-            variants={fadeUp}
+            variants={fadeIn}
             initial="hidden"
             animate="show"
           >
-            <div className="h-full rounded-2xl border border-white/[0.06] bg-dark-200/80 p-5 backdrop-blur-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-white">
-                  Market Movers
-                </h2>
-                <div className="flex items-center gap-1.5">
+            <div className="h-full rounded-xl border border-gold/[0.08] bg-[#13110F]/90 p-6 backdrop-blur-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <SectionLabel>Market</SectionLabel>
+                <span className="flex items-center gap-1.5 text-[10px]">
                   {connected ? (
-                    <span className="flex items-center gap-1.5 text-[10px] font-medium text-neon">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon opacity-75" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-neon" />
-                      </span>
+                    <span className="flex items-center gap-1.5 text-gold/60">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold/60" />
                       Live
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                      <WifiOff className="h-2.5 w-2.5" /> Offline
+                    <span className="flex items-center gap-1 text-[#3A3530]">
+                      <WifiOff className="h-2.5 w-2.5" />
                     </span>
                   )}
-                </div>
+                </span>
               </div>
 
               {marketTokens.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Wifi className="mb-2 h-5 w-5 text-slate-700" />
-                  <p className="text-xs text-slate-500">
-                    {connected ? "No movers right now" : "Connecting..."}
+                  <Wifi className="mb-2 h-5 w-5 text-[#2A2520]" />
+                  <p className="text-xs text-[#5C574D]">
+                    {connected ? "No movers" : "Connecting\u2026"}
                   </p>
                 </div>
               ) : (
-                <div className="space-y-0.5">
+                <div>
                   {marketTokens.map((token, i) => {
                     const isUp = token.change24h >= 0;
-                    const barWidth = Math.min(
-                      Math.abs(token.change24h) * 3,
-                      100
-                    );
                     return (
                       <motion.div
                         key={token.symbol}
-                        initial={{ opacity: 0, x: 8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + i * 0.04 }}
-                        className="group flex items-center justify-between rounded-xl px-2.5 py-2.5 transition-colors hover:bg-white/[0.02]"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 + i * 0.06, duration: 0.6 }}
+                        className={`flex items-center justify-between py-2.5 ${
+                          i < marketTokens.length - 1
+                            ? "border-b border-gold/[0.04]"
+                            : ""
+                        }`}
                       >
-                        <div className="flex min-w-0 items-center gap-2.5">
-                          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-[9px] font-bold text-slate-400">
-                            {token.symbol.slice(0, 2)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-medium text-white">
-                              {token.symbol}
-                            </p>
-                            <p className="font-mono text-[10px] text-slate-600">
-                              {formatPrice(token.midPrice)}
-                            </p>
-                          </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-cream">
+                            {token.symbol}
+                          </p>
+                          <p className="font-mono text-[10px] text-[#3A3530]">
+                            {formatPrice(token.midPrice)}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2.5">
-                          <div className="hidden w-12 overflow-hidden rounded-full bg-white/[0.04] sm:block">
-                            <div
-                              className={`h-1 rounded-full transition-all ${
-                                isUp ? "bg-emerald-500" : "bg-rose-500"
-                              }`}
-                              style={{ width: `${barWidth}%` }}
-                            />
-                          </div>
+                        <div className="text-right">
                           <span
-                            className={`min-w-[52px] text-right text-xs font-semibold tabular-nums ${
-                              isUp ? "text-emerald-400" : "text-rose-400"
-                            }`}
+                            className="text-xs font-medium tabular-nums"
+                            style={{ color: isUp ? SAGE : WINE }}
                           >
                             {isUp ? "+" : ""}
                             {formatNumber(token.change24h)}%
                           </span>
+                          <p className="text-[9px] text-[#3A3530]">
+                            {formatCompact(token.dayNtlVlm)}
+                          </p>
                         </div>
                       </motion.div>
                     );

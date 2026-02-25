@@ -36,6 +36,15 @@ const config: Config = {
           500: "#F59E0B",
           600: "#D97706",
         },
+        gold: {
+          DEFAULT: "#C9A96E",
+          300: "#D4B87A",
+          400: "#C9A96E",
+          500: "#B8944F",
+          600: "#96763A",
+          700: "#6F5729",
+        },
+        cream: "#E8E2D6",
         dark: {
           DEFAULT: "#0a0a0a",
           50: "#1a1a1a",
@@ -47,6 +56,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Playfair Display", "Georgia", "Times New Roman", "serif"],
       },
       boxShadow: {
         neon: "0 0 5px #39FF14, 0 0 20px rgba(57, 255, 20, 0.3)",
@@ -54,6 +64,7 @@ const config: Config = {
           "0 0 10px #39FF14, 0 0 40px rgba(57, 255, 20, 0.4), 0 0 80px rgba(57, 255, 20, 0.1)",
         "neon-sm": "0 0 3px #39FF14, 0 0 10px rgba(57, 255, 20, 0.2)",
         glow: "0 0 15px rgba(57, 255, 20, 0.15)",
+        "gold-sm": "0 0 10px rgba(201, 169, 110, 0.08)",
         "glow-cyan": "0 0 15px rgba(6, 182, 212, 0.15)",
         "glow-purple": "0 0 15px rgba(139, 92, 246, 0.15)",
       },
