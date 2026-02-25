@@ -40,11 +40,13 @@ import useMarketData from "@/hooks/useMarketData";
 import { useAuthStore } from "@/stores/authStore";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
 
-// ── Palette ─────────────────────────────────────────────────────────
+// ── Palette (on-brand) ──────────────────────────────────────────────
 
-const GOLD = "#D4A574";
-const SAGE = "#5FA88F";
-const WINE = "#B85450";
+const NEON = "#39FF14";
+const CYAN = "#06B6D4";
+const PURPLE = "#8B5CF6";
+const AMBER = "#F59E0B";
+const RED = "#F87171";
 
 const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
 
@@ -100,29 +102,48 @@ const fadeIn = {
 
 // ── Sub-components ──────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({
+  children,
+  color = "neon",
+}: {
+  children: React.ReactNode;
+  color?: "neon" | "cyan" | "purple" | "amber";
+}) {
+  const gradients = {
+    neon: "from-neon/20 to-transparent",
+    cyan: "from-cyan/20 to-transparent",
+    purple: "from-purple/20 to-transparent",
+    amber: "from-amber/20 to-transparent",
+  };
   return (
     <div className="mb-5 flex items-center gap-4">
-      <h2 className="whitespace-nowrap font-serif text-lg text-cream">
+      <h2 className="whitespace-nowrap font-serif text-lg text-white">
         {children}
       </h2>
-      <div className="h-px flex-1 bg-gradient-to-r from-gold/15 to-transparent" />
+      <div
+        className={`h-px flex-1 bg-gradient-to-r ${gradients[color]}`}
+      />
     </div>
   );
 }
 
-function GoldBar({
+function ProgressBar({
   value,
   max = 100,
+  color = NEON,
 }: {
   value: number;
   max?: number;
+  color?: string;
 }) {
   const pct = Math.min(Math.max((value / max) * 100, 0), 100);
   return (
-    <div className="h-[3px] w-full rounded-full bg-[#2A261F]">
+    <div className="h-[3px] w-full rounded-full bg-white/[0.06]">
       <motion.div
-        className="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold"
+        className="h-full rounded-full"
+        style={{
+          background: `linear-gradient(to right, ${color}88, ${color})`,
+        }}
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 1.4, ease: "easeOut", delay: 0.5 }}
@@ -137,13 +158,13 @@ function ChartTooltip({ active, payload, label }: any) {
   const val = payload[0].value as number;
   const pos = val >= 0;
   return (
-    <div className="rounded-lg border border-gold/10 bg-[#1A1815] px-4 py-2.5 shadow-xl">
-      <p className="font-serif text-[10px] text-[#A09A90]">
+    <div className="rounded-lg border border-white/10 bg-dark-200 px-4 py-2.5 shadow-xl">
+      <p className="font-serif text-[10px] text-gray-500">
         {formatChartDate(String(label))}
       </p>
       <p
         className="mt-0.5 font-serif text-sm font-semibold"
-        style={{ color: pos ? GOLD : WINE }}
+        style={{ color: pos ? NEON : RED }}
       >
         {pos ? "+" : ""}
         {formatCurrency(Math.abs(val))}
@@ -153,10 +174,18 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 const STRAT_DOT: Record<string, string> = {
-  conservative: "bg-[#7B8DB8]",
-  moderate: "bg-[#9B86C0]",
-  aggressive: "bg-[#B85450]",
-  custom: "bg-gold",
+  conservative: "bg-cyan",
+  moderate: "bg-purple",
+  aggressive: "bg-amber",
+  custom: "bg-neon",
+};
+
+// Card accent colors per stat
+const CARD_ACCENTS = {
+  pnl: { border: "border-neon/[0.12]", hoverBorder: "hover:border-neon/25", shadow: "hover:shadow-glow", iconColor: "text-neon/40" },
+  winRate: { border: "border-cyan/[0.12]", hoverBorder: "hover:border-cyan/25", shadow: "hover:shadow-glow-cyan", iconColor: "text-cyan/40" },
+  sharpe: { border: "border-purple/[0.12]", hoverBorder: "hover:border-purple/25", shadow: "hover:shadow-glow-purple", iconColor: "text-purple/40" },
+  activity: { border: "border-amber/[0.12]", hoverBorder: "hover:border-amber/25", shadow: "hover:shadow-glow-amber", iconColor: "text-amber/40" },
 };
 
 // ═════════════════════════════════════════════════════════════════════
@@ -212,8 +241,8 @@ export default function DashboardPage() {
   const chartColor =
     equityCurve.length > 0 &&
     equityCurve[equityCurve.length - 1]?.cumulative_pnl >= 0
-      ? GOLD
-      : WINE;
+      ? NEON
+      : RED;
   const userName = user?.email?.split("@")[0] ?? null;
   const dateStr = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -228,8 +257,8 @@ export default function DashboardPage() {
   return (
     <PageTransition>
       <div className="relative space-y-8">
-        {/* ── Warm ambient glow ── */}
-        <div className="pointer-events-none absolute -top-32 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-gold/[0.02] blur-[150px]" />
+        {/* ── Ambient glow ── */}
+        <div className="pointer-events-none absolute -top-32 left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-neon/[0.015] blur-[150px]" />
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* ── Header ── */}
@@ -240,32 +269,32 @@ export default function DashboardPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-[#716B63]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-gray-600">
             Welcome Back
           </p>
-          <h1 className="mt-2 font-serif text-3xl font-medium text-cream">
+          <h1 className="mt-2 font-serif text-3xl font-medium text-white">
             {getGreeting()}
             {userName ? `, ${userName}` : ""}
           </h1>
           <div className="mx-auto mt-3 flex max-w-xs items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold/20" />
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#716B63]">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-neon/15" />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
               {dateStr}
             </p>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold/20" />
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-neon/15" />
           </div>
 
           {/* Actions */}
           <div className="mt-6 flex items-center justify-center gap-4">
             <Link
               href="/strategies"
-              className="inline-flex items-center gap-2 rounded-lg border border-gold/15 px-4 py-2 text-xs text-gold transition-all duration-300 hover:border-gold/30 hover:bg-gold/[0.04]"
+              className="inline-flex items-center gap-2 rounded-lg border border-neon/15 px-4 py-2 text-xs text-neon transition-all duration-300 hover:border-neon/30 hover:bg-neon/[0.04]"
             >
               <Plus className="h-3.5 w-3.5" /> New Strategy
             </Link>
             <Link
               href="/analytics"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs text-[#A09A90] transition-colors duration-300 hover:text-cream"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs text-gray-400 transition-colors duration-300 hover:text-white"
             >
               <BarChart3 className="h-3.5 w-3.5" /> Analytics
             </Link>
@@ -283,22 +312,22 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
+            <div className={`rounded-xl ${CARD_ACCENTS.pnl.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.pnl.hoverBorder} ${CARD_ACCENTS.pnl.shadow}`}>
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
                 Total PnL
               </p>
               <p
                 className="mt-3 font-serif text-2xl font-semibold tracking-tight lg:text-3xl"
-                style={{ color: pnlPositive ? GOLD : WINE }}
+                style={{ color: pnlPositive ? NEON : RED }}
               >
                 {pnlPositive ? "+" : ""}
                 {formatCurrency(totalPnl)}
               </p>
-              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="my-3 h-px bg-white/[0.06]" />
               <div className="flex items-center gap-2">
                 <span
                   className="flex items-center gap-1 text-[11px] font-medium"
-                  style={{ color: pnlPositive ? SAGE : WINE }}
+                  style={{ color: pnlPositive ? NEON : RED }}
                 >
                   {pnlPositive ? (
                     <ArrowUpRight className="h-3 w-3" />
@@ -308,8 +337,8 @@ export default function DashboardPage() {
                   {returnPct >= 0 ? "+" : ""}
                   {returnPct.toFixed(1)}%
                 </span>
-                <span className="text-[10px] text-[#4A453E]">&middot;</span>
-                <span className="text-[10px] text-[#716B63]">
+                <span className="text-[10px] text-gray-700">&middot;</span>
+                <span className="text-[10px] text-gray-600">
                   {chartPeriod} days
                 </span>
               </div>
@@ -323,21 +352,24 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
+            <div className={`rounded-xl ${CARD_ACCENTS.winRate.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.winRate.hoverBorder} ${CARD_ACCENTS.winRate.shadow}`}>
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
                 Win Rate
               </p>
-              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {overview ? `${overview.win_rate.toFixed(1)}%` : "\u2014"}
               </p>
               <div className="my-3">
-                <GoldBar value={overview?.win_rate ?? 0} />
+                <ProgressBar
+                  value={overview?.win_rate ?? 0}
+                  color={CYAN}
+                />
               </div>
               <div className="flex items-center gap-2">
                 {overview && overview.profit_factor > 0 && (
-                  <span className="text-[11px] text-[#A09A90]">
+                  <span className="text-[11px] text-gray-500">
                     Profit Factor{" "}
-                    <span className="text-gold">
+                    <span className="text-cyan">
                       {overview.profit_factor.toFixed(2)}
                     </span>
                   </span>
@@ -353,17 +385,17 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
+            <div className={`rounded-xl ${CARD_ACCENTS.sharpe.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.sharpe.hoverBorder} ${CARD_ACCENTS.sharpe.shadow}`}>
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
                 Sharpe Ratio
               </p>
-              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {overview ? overview.sharpe_ratio.toFixed(2) : "\u2014"}
               </p>
-              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="my-3 h-px bg-white/[0.06]" />
               <div className="flex items-center gap-2">
                 {overview && (
-                  <span className="text-[11px] italic text-gold/60">
+                  <span className="text-[11px] italic text-purple-400">
                     {overview.sharpe_ratio >= 2
                       ? "Exceptional"
                       : overview.sharpe_ratio >= 1
@@ -373,10 +405,10 @@ export default function DashboardPage() {
                 )}
                 {overview && overview.max_drawdown > 0 && (
                   <>
-                    <span className="text-[10px] text-[#4A453E]">
+                    <span className="text-[10px] text-gray-700">
                       &middot;
                     </span>
-                    <span className="text-[10px]" style={{ color: WINE }}>
+                    <span className="text-[10px] text-red-400">
                       DD {overview.max_drawdown.toFixed(1)}%
                     </span>
                   </>
@@ -392,24 +424,24 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm transition-all duration-500 hover:border-gold/[0.18] hover:shadow-gold-sm">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#A09A90]">
+            <div className={`rounded-xl ${CARD_ACCENTS.activity.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.activity.hoverBorder} ${CARD_ACCENTS.activity.shadow}`}>
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
                 Activity
               </p>
-              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-cream lg:text-3xl">
+              <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {activeStrategies.length}
-                <span className="ml-1 font-sans text-sm font-normal text-[#716B63]">
+                <span className="ml-1 font-sans text-sm font-normal text-gray-600">
                   / {strategies.length}
                 </span>
               </p>
-              <div className="my-3 h-px bg-gold/[0.08]" />
+              <div className="my-3 h-px bg-white/[0.06]" />
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-[11px] text-[#A09A90]">
-                  <Zap className="h-2.5 w-2.5 text-gold/50" />
+                <span className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                  <Zap className="h-2.5 w-2.5 text-amber/50" />
                   {liveSignals} signals
                 </span>
-                <span className="flex items-center gap-1.5 text-[11px] text-[#A09A90]">
-                  <Activity className="h-2.5 w-2.5 text-gold/50" />
+                <span className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                  <Activity className="h-2.5 w-2.5 text-amber/50" />
                   {overview?.total_trades ?? 0} trades
                 </span>
               </div>
@@ -429,7 +461,7 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
+            <div className="rounded-xl border border-white/[0.06] bg-dark-200/80 p-6 backdrop-blur-sm">
               <div className="mb-6 flex items-center justify-between">
                 <SectionLabel>Portfolio Performance</SectionLabel>
                 <div className="flex items-center">
@@ -439,8 +471,8 @@ export default function DashboardPage() {
                       onClick={() => setChartPeriod(d)}
                       className={`border-b-2 px-3 py-1.5 text-[11px] font-medium tracking-wider transition-all duration-300 ${
                         chartPeriod === d
-                          ? "border-gold/40 text-gold"
-                          : "border-transparent text-[#716B63] hover:text-[#A09A90]"
+                          ? "border-neon/40 text-neon"
+                          : "border-transparent text-gray-600 hover:text-gray-400"
                       }`}
                     >
                       {d}D
@@ -451,11 +483,11 @@ export default function DashboardPage() {
 
               {equityCurve.length === 0 ? (
                 <div className="flex h-[260px] flex-col items-center justify-center text-center">
-                  <BarChart3 className="mb-3 h-8 w-8 text-[#3A352F]" />
-                  <p className="font-serif text-sm text-[#716B63]">
+                  <BarChart3 className="mb-3 h-8 w-8 text-gray-700" />
+                  <p className="font-serif text-sm text-gray-500">
                     No equity data yet
                   </p>
-                  <p className="mt-1 text-[11px] text-[#4A453E]">
+                  <p className="mt-1 text-[11px] text-gray-600">
                     Begin trading to chart your journey
                   </p>
                 </div>
@@ -467,7 +499,7 @@ export default function DashboardPage() {
                   >
                     <defs>
                       <linearGradient
-                        id="vintageGrad"
+                        id="chartGrad"
                         x1="0"
                         y1="0"
                         x2="0"
@@ -476,7 +508,7 @@ export default function DashboardPage() {
                         <stop
                           offset="0%"
                           stopColor={chartColor}
-                          stopOpacity={0.12}
+                          stopOpacity={0.15}
                         />
                         <stop
                           offset="100%"
@@ -487,18 +519,18 @@ export default function DashboardPage() {
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(212,165,116,0.04)"
+                      stroke="rgba(255,255,255,0.03)"
                     />
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={formatChartDate}
-                      tick={{ fill: "#716B63", fontSize: 10 }}
-                      axisLine={{ stroke: "rgba(212,165,116,0.08)" }}
+                      tick={{ fill: "#6b7280", fontSize: 10 }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.06)" }}
                       tickLine={false}
                     />
                     <YAxis
                       tickFormatter={formatChartValue}
-                      tick={{ fill: "#716B63", fontSize: 10 }}
+                      tick={{ fill: "#6b7280", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
                       width={72}
@@ -509,12 +541,12 @@ export default function DashboardPage() {
                       dataKey="cumulative_pnl"
                       stroke={chartColor}
                       strokeWidth={1.5}
-                      fill="url(#vintageGrad)"
+                      fill="url(#chartGrad)"
                       dot={false}
                       activeDot={{
                         r: 3.5,
                         fill: chartColor,
-                        stroke: "#12100D",
+                        stroke: "#111111",
                         strokeWidth: 2,
                       }}
                     />
@@ -531,18 +563,18 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="flex h-full flex-col rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
-              <SectionLabel>Strategies</SectionLabel>
+            <div className="flex h-full flex-col rounded-xl border border-white/[0.06] bg-dark-200/80 p-6 backdrop-blur-sm">
+              <SectionLabel color="cyan">Strategies</SectionLabel>
 
               {strategies.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-                  <Brain className="mb-3 h-7 w-7 text-[#3A352F]" />
-                  <p className="font-serif text-sm text-[#716B63]">
+                  <Brain className="mb-3 h-7 w-7 text-gray-700" />
+                  <p className="font-serif text-sm text-gray-500">
                     No strategies yet
                   </p>
                   <Link
                     href="/strategies"
-                    className="mt-2 text-[11px] text-gold/70 transition-colors duration-300 hover:text-gold"
+                    className="mt-2 text-[11px] text-neon/70 transition-colors duration-300 hover:text-neon"
                   >
                     Create your first strategy
                   </Link>
@@ -550,14 +582,14 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex-1">
                   {strategies.slice(0, 5).map((s, i) => {
-                    const dot = STRAT_DOT[s.strategy_type] ?? "bg-gold";
+                    const dot = STRAT_DOT[s.strategy_type] ?? "bg-neon";
                     return (
                       <Link
                         key={s.id}
                         href={`/strategies/${s.id}`}
-                        className={`group flex items-center justify-between py-3.5 transition-colors duration-300 hover:bg-gold/[0.02] ${
+                        className={`group flex items-center justify-between py-3.5 transition-colors duration-300 hover:bg-white/[0.02] ${
                           i < Math.min(strategies.length, 5) - 1
-                            ? "border-b border-gold/[0.06]"
+                            ? "border-b border-white/[0.05]"
                             : ""
                         }`}
                       >
@@ -566,25 +598,25 @@ export default function DashboardPage() {
                             className={`h-2 w-2 flex-shrink-0 rounded-full ${dot}`}
                           />
                           <div>
-                            <p className="text-sm text-cream">{s.name}</p>
-                            <p className="text-[10px] uppercase tracking-wider text-[#716B63]">
+                            <p className="text-sm text-white">{s.name}</p>
+                            <p className="text-[10px] uppercase tracking-wider text-gray-600">
                               {s.strategy_type}
                               {s.is_active && (
-                                <span className="ml-2 normal-case tracking-normal text-gold/50">
+                                <span className="ml-2 normal-case tracking-normal text-neon/50">
                                   &bull; Active
                                 </span>
                               )}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 text-[#3A352F] transition-colors duration-300 group-hover:text-[#716B63]" />
+                        <ChevronRight className="h-3.5 w-3.5 text-gray-700 transition-colors duration-300 group-hover:text-gray-500" />
                       </Link>
                     );
                   })}
                   {strategies.length > 5 && (
                     <Link
                       href="/strategies"
-                      className="mt-3 block text-center text-[10px] text-[#716B63] transition-colors duration-300 hover:text-[#A09A90]"
+                      className="mt-3 block text-center text-[10px] text-gray-600 transition-colors duration-300 hover:text-gray-400"
                     >
                       View all {strategies.length} strategies
                     </Link>
@@ -607,18 +639,18 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="overflow-hidden rounded-xl border border-gold/[0.08] bg-[#12100D]/90 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-dark-200/80 backdrop-blur-sm">
               <div className="p-6 pb-4">
-                <SectionLabel>Recent Trades</SectionLabel>
+                <SectionLabel color="purple">Recent Trades</SectionLabel>
               </div>
 
               {executions.length === 0 ? (
                 <div className="px-6 pb-8 pt-2 text-center">
-                  <Zap className="mx-auto mb-3 h-7 w-7 text-[#3A352F]" />
-                  <p className="font-serif text-sm text-[#716B63]">
+                  <Zap className="mx-auto mb-3 h-7 w-7 text-gray-700" />
+                  <p className="font-serif text-sm text-gray-500">
                     No trades recorded
                   </p>
-                  <p className="mt-1 text-[11px] text-[#4A453E]">
+                  <p className="mt-1 text-[11px] text-gray-600">
                     Activate a strategy to begin
                   </p>
                 </div>
@@ -626,17 +658,17 @@ export default function DashboardPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gold/[0.06]">
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
+                      <tr className="border-b border-white/[0.05]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-gray-600">
                           Direction
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-gray-600">
                           Entry
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-gray-600">
                           PnL
                         </th>
-                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-[#716B63]">
+                        <th className="px-6 py-2.5 text-left text-[10px] font-medium uppercase tracking-[0.15em] text-gray-600">
                           Status
                         </th>
                         <th className="w-10 px-6 py-2.5" />
@@ -649,17 +681,17 @@ export default function DashboardPage() {
                         return (
                           <tr
                             key={exec.id}
-                            className="border-b border-gold/[0.04] transition-colors duration-300 hover:bg-gold/[0.02]"
+                            className="border-b border-white/[0.03] transition-colors duration-300 hover:bg-white/[0.02]"
                           >
                             <td className="px-6 py-3.5">
                               <span
                                 className="text-xs font-medium uppercase tracking-wider"
-                                style={{ color: isBuy ? SAGE : WINE }}
+                                style={{ color: isBuy ? NEON : RED }}
                               >
                                 {exec.direction}
                               </span>
                             </td>
-                            <td className="px-6 py-3.5 font-mono text-xs text-[#A09A90]">
+                            <td className="px-6 py-3.5 font-mono text-xs text-gray-400">
                               {formatCurrency(exec.entry_price)}
                             </td>
                             <td
@@ -667,10 +699,10 @@ export default function DashboardPage() {
                               style={{
                                 color:
                                   exec.pnl == null
-                                    ? "#716B63"
+                                    ? "#6b7280"
                                     : exec.pnl >= 0
-                                      ? SAGE
-                                      : WINE,
+                                      ? NEON
+                                      : RED,
                               }}
                             >
                               {pnl.text}
@@ -684,12 +716,12 @@ export default function DashboardPage() {
                                   href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[#4A453E] transition-colors duration-300 hover:text-gold"
+                                  className="text-gray-600 transition-colors duration-300 hover:text-neon"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                               ) : (
-                                <span className="text-[#2A261F]">&mdash;</span>
+                                <span className="text-gray-800">&mdash;</span>
                               )}
                             </td>
                           </tr>
@@ -700,7 +732,7 @@ export default function DashboardPage() {
                   <div className="px-6 py-3 text-right">
                     <Link
                       href="/executions"
-                      className="text-[11px] text-[#716B63] transition-colors duration-300 hover:text-gold"
+                      className="text-[11px] text-gray-600 transition-colors duration-300 hover:text-neon"
                     >
                       View all trades &rarr;
                     </Link>
@@ -717,17 +749,17 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
           >
-            <div className="h-full rounded-xl border border-gold/[0.08] bg-[#12100D]/90 p-6 backdrop-blur-sm">
+            <div className="h-full rounded-xl border border-white/[0.06] bg-dark-200/80 p-6 backdrop-blur-sm">
               <div className="mb-5 flex items-center justify-between">
-                <SectionLabel>Market</SectionLabel>
+                <SectionLabel color="amber">Market</SectionLabel>
                 <span className="flex items-center gap-1.5 text-[10px]">
                   {connected ? (
-                    <span className="flex items-center gap-1.5 text-gold/60">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold/60" />
+                    <span className="flex items-center gap-1.5 text-neon/60">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-neon/60" />
                       Live
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[#4A453E]">
+                    <span className="flex items-center gap-1 text-gray-700">
                       <WifiOff className="h-2.5 w-2.5" />
                     </span>
                   )}
@@ -736,8 +768,8 @@ export default function DashboardPage() {
 
               {marketTokens.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Wifi className="mb-2 h-5 w-5 text-[#3A352F]" />
-                  <p className="text-xs text-[#716B63]">
+                  <Wifi className="mb-2 h-5 w-5 text-gray-700" />
+                  <p className="text-xs text-gray-600">
                     {connected ? "No movers" : "Connecting\u2026"}
                   </p>
                 </div>
@@ -753,27 +785,27 @@ export default function DashboardPage() {
                         transition={{ delay: 0.8 + i * 0.06, duration: 0.6 }}
                         className={`flex items-center justify-between py-2.5 ${
                           i < marketTokens.length - 1
-                            ? "border-b border-gold/[0.04]"
+                            ? "border-b border-white/[0.04]"
                             : ""
                         }`}
                       >
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-cream">
+                          <p className="text-xs font-medium text-white">
                             {token.symbol}
                           </p>
-                          <p className="font-mono text-[10px] text-[#4A453E]">
+                          <p className="font-mono text-[10px] text-gray-700">
                             {formatPrice(token.midPrice)}
                           </p>
                         </div>
                         <div className="text-right">
                           <span
                             className="text-xs font-medium tabular-nums"
-                            style={{ color: isUp ? SAGE : WINE }}
+                            style={{ color: isUp ? NEON : RED }}
                           >
                             {isUp ? "+" : ""}
                             {formatNumber(token.change24h)}%
                           </span>
-                          <p className="text-[9px] text-[#4A453E]">
+                          <p className="text-[9px] text-gray-700">
                             {formatCompact(token.dayNtlVlm)}
                           </p>
                         </div>
