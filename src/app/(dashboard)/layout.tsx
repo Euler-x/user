@@ -10,19 +10,23 @@ import { useAuthStore } from "@/stores/authStore";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Only redirect to login when we definitively have no session:
+    // no in-memory auth AND no refresh token to restore from.
+    if (!isAuthenticated && !refreshToken) {
       router.replace("/login");
-    } else if (user && !user.email_verified) {
+    } else if (isAuthenticated && user && !user.email_verified) {
       router.replace("/verify-email");
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, refreshToken, user, router]);
 
-  // Show a neutral loading screen while the client hydrates or redirects,
-  // preventing a flash of unprotected content.
+  // Show a spinner while:
+  //  - the silent refresh is in progress (refreshToken exists but isAuthenticated is still false), OR
+  //  - we're waiting for email verification redirect
   if (!isAuthenticated || !user?.email_verified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-300">

@@ -25,6 +25,8 @@ interface AuthState {
   accessToken: string | null;
   /** Persisted so we can silently re-acquire an access token after page refresh. */
   refreshToken: string | null;
+  /** NOT persisted — derived from having a valid in-memory accessToken.
+   *  Always starts false on page load; becomes true after login or silent refresh. */
   isAuthenticated: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
@@ -43,9 +45,11 @@ export const useAuthStore = create<AuthState>()(
         setSessionCookie();
         set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
+      // Also sets isAuthenticated: true — called after a successful silent
+      // refresh so components waiting on isAuthenticated get re-rendered.
       setTokens: (accessToken, refreshToken) => {
         setSessionCookie();
-        set({ accessToken, refreshToken });
+        set({ accessToken, refreshToken, isAuthenticated: true });
       },
       setUser: (user) => set({ user }),
       logout: () => {
@@ -62,10 +66,10 @@ export const useAuthStore = create<AuthState>()(
       name: "eulerx-auth",
       partialize: (state) => ({
         user: state.user,
-        // accessToken intentionally excluded — kept in memory only to reduce
-        // XSS exposure. refreshToken is persisted to enable silent re-auth.
+        // accessToken: excluded — kept in memory only (reduces XSS exposure)
         refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
+        // isAuthenticated: excluded — always re-derived on load via silent
+        // refresh so a stale 'true' can never block the login redirect.
       }),
     }
   )
