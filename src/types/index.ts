@@ -26,6 +26,7 @@ export interface User {
   wallet_type: WalletType | null;
   is_admin: boolean;
   is_active: boolean;
+  is_subscribed: boolean;
   email: string | null;
   email_verified: boolean;
   has_wallet: boolean;

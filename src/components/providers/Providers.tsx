@@ -2,10 +2,18 @@
 
 import { Toaster } from "react-hot-toast";
 import AppErrorBoundary from "../ErrorBoundary";
+import { useTokenRefresh } from "@/hooks/useTokenRefresh";
+
+function TokenRefreshGate() {
+  useTokenRefresh();
+  return null;
+}
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AppErrorBoundary>
+      {/* Silently restore access token from refresh token on page load */}
+      <TokenRefreshGate />
       {children}
       <Toaster
         position="top-right"

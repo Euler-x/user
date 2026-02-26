@@ -21,7 +21,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isAuthenticated, user, router]);
 
-  if (!isAuthenticated || !user?.email_verified) return null;
+  // Show a neutral loading screen while the client hydrates or redirects,
+  // preventing a flash of unprotected content.
+  if (!isAuthenticated || !user?.email_verified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-dark-300">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-neon/30 border-t-neon animate-spin" />
+          <p className="text-sm text-gray-600">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

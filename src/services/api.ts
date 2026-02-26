@@ -11,6 +11,19 @@ const api = axios.create({
   timeout: 30000,
 });
 
+// ── JWT helpers ────────────────────────────────────────────
+/** Returns true if the token is missing, malformed, or expires within 30 s. */
+export function isTokenExpiredOrMissing(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    // 30-second buffer guards against clock skew
+    return typeof payload.exp === "number" && payload.exp * 1000 < Date.now() + 30_000;
+  } catch {
+    return true;
+  }
+}
+
 // ── Request interceptor: attach access token ───────────────
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -36,6 +49,21 @@ function processQueue(error: unknown, token: string | null) {
     else prom.reject(error);
   });
   failedQueue = [];
+}
+
+async function attemptTokenRefresh(): Promise<string> {
+  const refreshToken = useAuthStore.getState().refreshToken;
+  if (!refreshToken) throw new Error("No refresh token");
+
+  // Use the api instance so base config (timeout, content-type) is inherited.
+  // The response interceptor won't recurse because /auth/refresh is excluded
+  // from retry logic via the isAuthEndpoint check below.
+  const { data } = await api.post(ENDPOINTS.AUTH.REFRESH, {
+    refresh_token: refreshToken,
+  });
+
+  useAuthStore.getState().setTokens(data.access_token, data.refresh_token);
+  return data.access_token as string;
 }
 
 api.interceptors.response.use(
@@ -71,18 +99,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = useAuthStore.getState().refreshToken;
-        if (!refreshToken) throw new Error("No refresh token");
-
-        const { data } = await axios.post(ENDPOINTS.AUTH.REFRESH, {
-          refresh_token: refreshToken,
-        });
-
-        useAuthStore.getState().setTokens(data.access_token, data.refresh_token);
-        processQueue(null, data.access_token);
+        const newToken = await attemptTokenRefresh();
+        processQueue(null, newToken);
 
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
         }
         return api(originalRequest);
       } catch (refreshError) {
