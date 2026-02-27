@@ -530,12 +530,17 @@ export default function LandingPage() {
               </a>
             ))}
           </div>
-          <Link href="/register">
-            <Button size="sm">
-              Access ATE
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+              Sign In
+            </Link>
+            <Link href="/register">
+              <Button size="sm">
+                Access ATE
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 

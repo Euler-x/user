@@ -310,8 +310,14 @@ export interface MessageResponse {
   message: string;
 }
 
+export interface ValidationError {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+}
+
 export interface ApiError {
-  detail: string;
+  detail: string | ValidationError[];
   request_id?: string;
 }
 

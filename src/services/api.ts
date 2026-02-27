@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/authStore";
 import { ENDPOINTS } from "./endpoints";
-import type { ApiError } from "@/types";
+import type { ApiError, ValidationError } from "@/types";
 
 const api = axios.create({
   headers: {
@@ -119,14 +119,36 @@ api.interceptors.response.use(
       }
     }
 
-    // Show error toasts for non-401 errors
-    if (error.response?.data?.detail) {
-      const detail = error.response.data.detail;
-      if (typeof detail === "string") {
-        toast.error(detail);
+    // ── Show error toasts ──────────────────────────────────────
+    if (!error.response) {
+      // No response: timeout or complete network failure
+      if (error.code === "ECONNABORTED") {
+        toast.error("Request timed out. Please try again.");
+      } else {
+        toast.error("Network error. Please check your connection.");
       }
-    } else if (error.message === "Network Error") {
-      toast.error("Network error. Please check your connection.");
+    } else {
+      const detail = error.response.data?.detail;
+      if (typeof detail === "string" && detail) {
+        toast.error(detail);
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        // FastAPI 422 validation: detail is an array of {loc, msg, type}
+        const messages = (detail as ValidationError[])
+          .map((e) => e.msg)
+          .filter(Boolean)
+          .join("; ");
+        toast.error(messages || "Validation error. Please check your input.");
+      } else {
+        // Fallback messages when there is no structured detail body
+        const status = error.response.status;
+        if (status === 429) {
+          toast.error("Too many requests. Please slow down.");
+        } else if (status >= 500) {
+          toast.error("Server error. Please try again later.");
+        }
+        // 401 on auth endpoints: should always include a detail string from the backend
+        // 403 plan-enforcement errors: always include a detail string
+      }
     }
 
     return Promise.reject(error);
