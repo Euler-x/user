@@ -14,6 +14,8 @@ export const ENDPOINTS = {
     ME: `${API}/auth/me`,
     EMAIL_SUBMIT: `${API}/auth/email/submit`,
     EMAIL_VERIFY: `${API}/auth/email/verify`,
+    FORGOT_PASSWORD: `${API}/auth/forgot-password`,
+    RESET_PASSWORD: `${API}/auth/reset-password`,
   },
 
   // Strategies

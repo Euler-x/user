@@ -97,5 +97,29 @@ export default function useAuth() {
     }
   }, [fetchMe]);
 
-  return { loading, user, register, login, connectHyperliquidWallet, fetchMe, submitEmail, verifyEmail, logout };
+  const requestPasswordReset = useCallback(async (email: string) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, newPassword: string) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post(ENDPOINTS.AUTH.RESET_PASSWORD, {
+        token,
+        new_password: newPassword,
+      });
+      toast.success("Password reset successfully! Please log in.");
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { loading, user, register, login, connectHyperliquidWallet, fetchMe, submitEmail, verifyEmail, requestPasswordReset, resetPassword, logout };
 }

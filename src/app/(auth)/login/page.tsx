@@ -96,6 +96,12 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="flex justify-end -mt-1">
+              <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-neon transition-colors">
+                Forgot password?
+              </Link>
+            </div>
+
             <Button type="submit" size="lg" className="w-full group" loading={loading} disabled={!email || !password}>
               Sign In
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
