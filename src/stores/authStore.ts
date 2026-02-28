@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
@@ -8,8 +9,9 @@ const SESSION_COOKIE = "eulerx-session";
 
 function setSessionCookie() {
   if (typeof document === "undefined") return;
-  // 30-day expiry, SameSite=Lax (matches refresh-token lifetime)
-  const expires = new Date(Date.now() + 30 * 86_400_000).toUTCString();
+  // 7-day expiry — matches the refresh-token lifetime so the cookie never
+  // outlives the token and the middleware never grants access to a dead session.
+  const expires = new Date(Date.now() + 7 * 86_400_000).toUTCString();
   document.cookie = `${SESSION_COOKIE}=1; path=/; expires=${expires}; SameSite=Lax`;
 }
 
@@ -74,3 +76,30 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+/**
+ * Returns true once the Zustand persist middleware has finished rehydrating
+ * from localStorage. Use this to avoid acting on the default (empty) store
+ * state before persisted values are available.
+ *
+ * Safe to call during SSR — returns false until the client hydrates.
+ */
+export function useAuthHasHydrated(): boolean {
+  const [hasHydrated, setHasHydrated] = useState(() =>
+    typeof window !== "undefined" && useAuthStore.persist.hasHydrated()
+  );
+
+  useEffect(() => {
+    // In case hydration completed before this effect ran
+    if (useAuthStore.persist.hasHydrated()) {
+      setHasHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() =>
+      setHasHydrated(true)
+    );
+    return unsub;
+  }, []);
+
+  return hasHydrated;
+}

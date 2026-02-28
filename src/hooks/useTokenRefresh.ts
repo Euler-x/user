@@ -26,6 +26,28 @@ export function useTokenRefresh() {
         .catch(() => {
           // Refresh token is invalid or expired — clear stale session data
           logout();
+          // Force a hard redirect so the middleware cookie is gone and
+          // Next.js cannot bounce the user back to a protected route.
+          if (typeof window !== "undefined") {
+            const { pathname } = window.location;
+            const PROTECTED_PREFIXES = [
+              "/dashboard",
+              "/strategies",
+              "/signals",
+              "/executions",
+              "/transactions",
+              "/billing",
+              "/ambassador",
+              "/analytics",
+              "/transparency",
+              "/settings",
+              "/support",
+              "/learn",
+            ];
+            if (PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))) {
+              window.location.href = "/login";
+            }
+          }
         });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
