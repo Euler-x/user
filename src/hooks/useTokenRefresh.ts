@@ -1,19 +1,42 @@
 import { useEffect, useRef } from "react";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore, useAuthHasHydrated } from "@/stores/authStore";
 import { ENDPOINTS } from "@/services/endpoints";
 import api, { isTokenExpiredOrMissing } from "@/services/api";
 
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/strategies",
+  "/signals",
+  "/executions",
+  "/transactions",
+  "/billing",
+  "/ambassador",
+  "/analytics",
+  "/transparency",
+  "/settings",
+  "/support",
+  "/learn",
+];
+
 /**
- * Runs once on mount. If the user has a persisted refreshToken but no
- * in-memory accessToken (e.g. after a hard page refresh), silently exchanges
- * the refresh token for a new access token so the session is restored without
- * requiring the user to log in again.
+ * Runs once after Zustand persist hydration completes. If the user has a
+ * persisted refreshToken but no in-memory accessToken (e.g. after a hard page
+ * refresh), silently exchanges the refresh token for a new access token so the
+ * session is restored without requiring the user to log in again.
+ *
+ * IMPORTANT: Must wait for hydration — on first render, the Zustand store has
+ * default values (refreshToken = null). Acting on those defaults would mark
+ * the attempt as done and the real refresh would never fire.
  */
 export function useTokenRefresh() {
   const { accessToken, refreshToken, setTokens, logout } = useAuthStore();
+  const hasHydrated = useAuthHasHydrated();
   const attempted = useRef(false);
 
   useEffect(() => {
+    // Don't act on default (pre-hydration) store values — refreshToken would
+    // be null even though the user has a real token in localStorage.
+    if (!hasHydrated) return;
     if (attempted.current) return;
     attempted.current = true;
 
@@ -30,20 +53,6 @@ export function useTokenRefresh() {
           // Next.js cannot bounce the user back to a protected route.
           if (typeof window !== "undefined") {
             const { pathname } = window.location;
-            const PROTECTED_PREFIXES = [
-              "/dashboard",
-              "/strategies",
-              "/signals",
-              "/executions",
-              "/transactions",
-              "/billing",
-              "/ambassador",
-              "/analytics",
-              "/transparency",
-              "/settings",
-              "/support",
-              "/learn",
-            ];
             if (PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))) {
               window.location.href = "/login";
             }
@@ -51,5 +60,5 @@ export function useTokenRefresh() {
         });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasHydrated]);
 }
