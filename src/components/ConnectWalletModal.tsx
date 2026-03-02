@@ -137,7 +137,7 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
         <div className="space-y-3">
           <Input
             value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
+            onChange={(e) => setWalletAddress(e.target.value.trim())}
             placeholder="0x..."
             label="Hyperliquid Wallet Address"
           />
@@ -148,7 +148,7 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
           <div className="relative">
             <Input
               value={agentKey}
-              onChange={(e) => setAgentKey(e.target.value)}
+              onChange={(e) => setAgentKey(e.target.value.trim())}
               placeholder="Your agent wallet private key"
               label="Agent/API Wallet Private Key"
               type={showAgentKey ? "text" : "password"}
