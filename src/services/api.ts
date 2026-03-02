@@ -73,10 +73,10 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Don't retry auth endpoints
+    // Don't retry auth endpoints (login/register/refresh create tokens, retrying is pointless)
+    // Note: /auth/connect is NOT excluded — it needs token refresh when called from dashboard
     const isAuthEndpoint =
       originalRequest?.url?.includes("/auth/refresh") ||
-      originalRequest?.url?.includes("/auth/connect") ||
       originalRequest?.url?.includes("/auth/register") ||
       originalRequest?.url?.includes("/auth/login");
 
