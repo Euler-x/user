@@ -17,7 +17,8 @@ function setSessionCookie() {
 
 function clearSessionCookie() {
   if (typeof document === "undefined") return;
-  document.cookie = `${SESSION_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  // Use both max-age=0 and a past expires for cross-browser reliability
+  document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
 }
 
 interface AuthState {
