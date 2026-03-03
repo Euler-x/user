@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Mail, CheckCircle, Send, Trash2, Bell, Wallet, ArrowRight, Shield, ExternalLink, Eye, EyeOff, AlertTriangle, Lock, ChevronDown, ChevronUp, Activity, Ban } from "lucide-react";
+import { Mail, CheckCircle, Send, Trash2, Bell, Wallet, ArrowRight, Shield, ExternalLink, Eye, EyeOff, AlertTriangle, Lock, ChevronDown, ChevronUp, Activity, Ban, RefreshCw, Pencil } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Card, { CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -11,8 +11,9 @@ import toast from "react-hot-toast";
 import useAuth from "@/hooks/useAuth";
 import api from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
+import useWalletBalance from "@/hooks/useWalletBalance";
 import type { NotificationPreferences } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 const TABS = [
   { key: "wallet", label: "Wallet", icon: Wallet },
@@ -36,6 +37,8 @@ export default function SettingsPage() {
   const [showAgentKey, setShowAgentKey] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showUpdateWallet, setShowUpdateWallet] = useState(false);
+  const { balance: walletBalance, loading: balanceLoading, fetchBalance } = useWalletBalance();
 
   // Telegram
   const [botToken, setBotToken] = useState("");
@@ -51,6 +54,12 @@ export default function SettingsPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (activeTab === "wallet" && user?.has_wallet) {
+      fetchBalance();
+    }
+  }, [activeTab, user?.has_wallet, fetchBalance]);
+
   const cleanHex = (s: string) => s.replace(/[^0-9a-fA-Fx]/g, "");
   const cleanAddress = cleanHex(walletAddress);
   const cleanKey = agentKey.replace(/[\s\u200B-\u200D\uFEFF\u00A0]/g, "");
@@ -64,7 +73,9 @@ export default function SettingsPage() {
       await connectHyperliquidWallet(cleanAddress, cleanKey);
       setWalletAddress("");
       setAgentKey("");
+      setShowUpdateWallet(false);
       await fetchMe();
+      await fetchBalance();
     } catch {
       // Error toasted by interceptor
     } finally {
@@ -165,12 +176,62 @@ export default function SettingsPage() {
                 </div>
               </CardTitle>
               {user?.has_wallet ? (
-                <div className="mt-4 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-neon" />
-                    <span className="text-sm text-gray-300 font-mono">{user.wallet_address_hash?.slice(0, 12)}...{user.wallet_address_hash?.slice(-8)}</span>
-                    <Badge variant="success">Connected</Badge>
+                <div className="mt-4 space-y-5">
+                  {/* Current wallet info */}
+                  <div className="rounded-lg border border-white/[0.06] bg-dark-300/50 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-neon" />
+                        <span className="text-sm font-medium text-white">Connected Wallet</span>
+                        <Badge variant="success">Active</Badge>
+                      </div>
+                      <button
+                        onClick={fetchBalance}
+                        disabled={balanceLoading}
+                        className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-white/[0.04] hover:text-gray-400 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${balanceLoading ? "animate-spin" : ""}`} />
+                      </button>
+                    </div>
+
+                    {/* Wallet address */}
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600 mb-1">Address</p>
+                      <p className="text-sm text-gray-300 font-mono">
+                        {walletBalance?.wallet_address_masked ?? `${user.wallet_address_hash?.slice(0, 12)}...`}
+                      </p>
+                    </div>
+
+                    {/* Balance info */}
+                    {walletBalance && walletBalance.has_wallet && (
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">Total Balance</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(walletBalance.total_balance)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">Available</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(walletBalance.available_balance)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">Margin Used</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(walletBalance.margin_used)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">Positions</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{walletBalance.open_positions} open</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {walletBalance?.last_synced && (
+                      <p className="text-[10px] text-gray-700">
+                        Last synced: {new Date(walletBalance.last_synced).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", month: "short", day: "numeric" })}
+                      </p>
+                    )}
                   </div>
+
+                  {/* Security info */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Shield className="h-3 w-3 text-neon/60" />
@@ -185,6 +246,71 @@ export default function SettingsPage() {
                       <span>EulerX cannot transfer, withdraw, or move your funds</span>
                     </div>
                   </div>
+
+                  {/* Update wallet toggle */}
+                  {!showUpdateWallet ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setShowUpdateWallet(true)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Update Wallet
+                    </Button>
+                  ) : (
+                    <div className="rounded-lg border border-white/[0.06] bg-dark-300/30 p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-white">Update Wallet Connection</p>
+                        <button
+                          onClick={() => { setShowUpdateWallet(false); setWalletAddress(""); setAgentKey(""); }}
+                          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <Input
+                          value={walletAddress}
+                          onChange={(e) => setWalletAddress(e.target.value.replace(/\s/g, ""))}
+                          placeholder="0x..."
+                          label="New Wallet Address"
+                        />
+                        {cleanAddress && !isValidAddress && (
+                          <p className="text-xs text-red-400 -mt-2">Invalid address format. Must be 0x followed by 40 hex characters.</p>
+                        )}
+                        <div className="relative">
+                          <Input
+                            value={agentKey}
+                            onChange={(e) => setAgentKey(e.target.value.replace(/\s/g, ""))}
+                            placeholder="Your agent wallet private key"
+                            label="Agent/API Wallet Private Key"
+                            type={showAgentKey ? "text" : "password"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowAgentKey(!showAgentKey)}
+                            className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-300 transition-colors"
+                          >
+                            {showAgentKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/10 rounded-lg p-3">
+                        <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                        <span>This will replace your current wallet connection. Make sure the new agent key corresponds to the new wallet address.</span>
+                      </div>
+                      <Button
+                        className="group"
+                        onClick={handleConnectWallet}
+                        loading={walletLoading}
+                        disabled={!isValidAddress || !isValidKey}
+                      >
+                        <Shield className="h-4 w-4" />
+                        Update Wallet Connection
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="mt-4 space-y-5">
