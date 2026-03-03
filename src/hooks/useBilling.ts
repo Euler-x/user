@@ -48,18 +48,21 @@ export default function useBilling() {
     }
   }, []);
 
-  const subscribe = useCallback(async (planId: string, payCurrency?: string) => {
+  const subscribe = useCallback(async (planId: string, payCurrency?: string, useTrial?: boolean) => {
     setLoading(true);
     try {
       const { data } = await api.post<Subscription>(ENDPOINTS.BILLING.SUBSCRIBE, {
         plan_id: planId,
         pay_currency: payCurrency || undefined,
+        use_trial: useTrial || false,
       });
       setSubscription(data);
 
       if (data.invoice_url) {
         toast.success("Redirecting to payment...");
         window.open(data.invoice_url, "_blank");
+      } else if (useTrial) {
+        toast.success("Free trial activated! Enjoy your plan.");
       } else {
         toast.success("Subscription created! Complete payment to activate.");
       }

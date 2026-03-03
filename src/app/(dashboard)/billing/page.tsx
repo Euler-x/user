@@ -470,14 +470,40 @@ export default function BillingPage() {
                         </li>
                       )}
                     </ul>
-                    <Button
-                      className="w-full"
-                      variant={isCurrentPlan ? "secondary" : "primary"}
-                      disabled={isCurrentPlan || loading}
-                      onClick={() => setCheckoutPlan(plan)}
-                    >
-                      {isCurrentPlan ? "Current Plan" : "Subscribe"}
-                    </Button>
+                    {isCurrentPlan ? (
+                      <Button className="w-full" variant="secondary" disabled>
+                        Current Plan
+                      </Button>
+                    ) : plan.trial_days > 0 && !hasActiveSub ? (
+                      <div className="space-y-2">
+                        <Button
+                          className="w-full"
+                          variant="primary"
+                          disabled={loading}
+                          onClick={() => subscribe(plan.id, undefined, true)}
+                          loading={loading}
+                        >
+                          Start {plan.trial_days}-Day Free Trial
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant="secondary"
+                          disabled={loading}
+                          onClick={() => setCheckoutPlan(plan)}
+                        >
+                          Subscribe Now
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        variant="primary"
+                        disabled={loading}
+                        onClick={() => setCheckoutPlan(plan)}
+                      >
+                        Subscribe
+                      </Button>
+                    )}
                   </GlowCard>
                 </motion.div>
               );
