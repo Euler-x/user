@@ -164,6 +164,9 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
               {showAgentKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {agentKey && !isValidKey && (
+            <p className="text-xs text-red-400 -mt-2">Key too short ({cleanKey.length}/64 characters minimum).</p>
+          )}
         </div>
 
         <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/10 rounded-lg p-3">
