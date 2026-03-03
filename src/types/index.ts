@@ -383,3 +383,17 @@ export interface WalletInfo {
   agent_permissions: AgentKeyPermissions | null;
   smart_contract_audit_link: string;
 }
+
+// ── Wallet Balance ──────────────────────────────────────
+export interface WalletBalance {
+  has_wallet: boolean;
+  account_equity: number;
+  available_balance: number;
+  margin_used: number;
+  unrealized_pnl: number;
+  spot_balance: number;
+  total_balance: number;
+  open_positions: number;
+  wallet_address_masked: string | null;
+  last_synced: string | null;
+}

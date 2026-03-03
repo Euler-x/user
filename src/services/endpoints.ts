@@ -100,6 +100,11 @@ export const ENDPOINTS = {
     WALLET_INFO: `${API}/transparency/wallet-info`,
   },
 
+  // Wallet
+  WALLET: {
+    BALANCE: `${API}/wallet/balance`,
+  },
+
   // Market Data
   MARKET: {
     WS: `${WS_BASE}/market/ws`,
