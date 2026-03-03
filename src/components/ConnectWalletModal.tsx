@@ -34,14 +34,17 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
   const [walletLoading, setWalletLoading] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
-  const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(walletAddress);
-  const isValidKey = agentKey.length >= 64;
+  const cleanHex = (s: string) => s.replace(/[^0-9a-fA-Fx]/g, "");
+  const cleanAddress = cleanHex(walletAddress);
+  const cleanKey = agentKey.replace(/[\s\u200B-\u200D\uFEFF\u00A0]/g, "");
+  const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(cleanAddress);
+  const isValidKey = cleanKey.length >= 64;
 
   const handleConnect = async () => {
     if (!isValidAddress || !isValidKey) return;
     setWalletLoading(true);
     try {
-      await connectHyperliquidWallet(walletAddress, agentKey);
+      await connectHyperliquidWallet(cleanAddress, cleanKey);
       setWalletAddress("");
       setAgentKey("");
       await fetchMe();
@@ -137,18 +140,18 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
         <div className="space-y-3">
           <Input
             value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value.trim())}
+            onChange={(e) => setWalletAddress(e.target.value.replace(/\s/g, ""))}
             placeholder="0x..."
             label="Hyperliquid Wallet Address"
           />
-          {walletAddress && !isValidAddress && (
+          {cleanAddress && !isValidAddress && (
             <p className="text-xs text-red-400 -mt-2">Invalid address format. Must be 0x followed by 40 hex characters.</p>
           )}
 
           <div className="relative">
             <Input
               value={agentKey}
-              onChange={(e) => setAgentKey(e.target.value.trim())}
+              onChange={(e) => setAgentKey(e.target.value.replace(/\s/g, ""))}
               placeholder="Your agent wallet private key"
               label="Agent/API Wallet Private Key"
               type={showAgentKey ? "text" : "password"}
