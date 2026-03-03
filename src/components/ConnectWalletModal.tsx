@@ -38,7 +38,7 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
   const cleanAddress = cleanHex(walletAddress);
   const cleanKey = agentKey.replace(/[\s\u200B-\u200D\uFEFF\u00A0]/g, "");
   const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(cleanAddress);
-  const isValidKey = cleanKey.length >= 64;
+  const isValidKey = cleanKey.length >= 40 && cleanKey.length <= 200;
 
   const handleConnect = async () => {
     if (!isValidAddress || !isValidKey) return;
@@ -165,7 +165,11 @@ export default function ConnectWalletModal({ isOpen, onClose }: ConnectWalletMod
             </button>
           </div>
           {agentKey && !isValidKey && (
-            <p className="text-xs text-red-400 -mt-2">Key too short ({cleanKey.length}/64 characters minimum).</p>
+            <p className="text-xs text-red-400 -mt-2">
+              {cleanKey.length < 40
+                ? `Key too short (${cleanKey.length}/40 characters minimum).`
+                : `Key too long (${cleanKey.length}/200 characters maximum).`}
+            </p>
           )}
         </div>
 

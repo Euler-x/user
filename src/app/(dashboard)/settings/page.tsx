@@ -55,7 +55,7 @@ export default function SettingsPage() {
   const cleanAddress = cleanHex(walletAddress);
   const cleanKey = agentKey.replace(/[\s\u200B-\u200D\uFEFF\u00A0]/g, "");
   const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(cleanAddress);
-  const isValidKey = cleanKey.length >= 64;
+  const isValidKey = cleanKey.length >= 40 && cleanKey.length <= 200;
 
   const handleConnectWallet = async () => {
     if (!isValidAddress || !isValidKey) return;
