@@ -17,6 +17,7 @@ import { PageSpinner } from "@/components/ui/Spinner";
 import Tooltip from "@/components/ui/Tooltip";
 import useStrategies from "@/hooks/useStrategies";
 import useBilling from "@/hooks/useBilling";
+import useWalletBalance from "@/hooks/useWalletBalance";
 import { formatCurrency, capitalize } from "@/lib/utils";
 import type { StrategyType, RiskProfile, StrategyTimeframe } from "@/types";
 
@@ -420,6 +421,7 @@ function DetailPanel({
   creating: boolean;
   hasActiveSub: boolean;
 }) {
+  const { balance: walletBalance, fetchBalance } = useWalletBalance();
   const [name, setName] = useState(`${preset.name} Strategy`);
   const [capital, setCapital] = useState(preset.default_capital);
   const [leverage, setLeverage] = useState(preset.leverage_limit);
@@ -432,9 +434,13 @@ function DetailPanel({
   const [targetReturnMin, setTargetReturnMin] = useState(preset.target_return_min);
   const [targetReturnMax, setTargetReturnMax] = useState(preset.target_return_max);
 
+  // Fetch wallet balance and use it as default capital
+  useEffect(() => {
+    fetchBalance();
+  }, [fetchBalance]);
+
   useEffect(() => {
     setName(`${preset.name} Strategy`);
-    setCapital(preset.default_capital);
     setLeverage(preset.leverage_limit);
     setMaxPositions(preset.max_positions);
     setMaxDrawdown(preset.max_drawdown_percent);
@@ -445,6 +451,15 @@ function DetailPanel({
     setTargetReturnMin(preset.target_return_min);
     setTargetReturnMax(preset.target_return_max);
   }, [preset]);
+
+  // Set capital from wallet balance when available
+  useEffect(() => {
+    if (walletBalance?.available_balance && walletBalance.available_balance > 0) {
+      setCapital(Math.floor(walletBalance.available_balance));
+    } else {
+      setCapital(preset.default_capital);
+    }
+  }, [walletBalance, preset.default_capital]);
 
   const Icon = preset.icon;
 
@@ -661,6 +676,11 @@ function DetailPanel({
                   <label className="block text-sm font-medium text-gray-300">
                     Capital Allocation (USD)
                   </label>
+                  {walletBalance?.available_balance != null && walletBalance.available_balance > 0 && (
+                    <p className="text-xs text-gray-500">
+                      Wallet balance: <span className="text-neon">{formatCurrency(walletBalance.available_balance)}</span>
+                    </p>
+                  )}
                   <input
                     type="number"
                     value={capital}
@@ -668,7 +688,20 @@ function DetailPanel({
                     min={100}
                     className="w-full bg-dark-50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-colors"
                   />
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {walletBalance?.available_balance != null && walletBalance.available_balance >= 100 && (
+                      <button
+                        onClick={() => setCapital(Math.floor(walletBalance.available_balance))}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                          capital === Math.floor(walletBalance.available_balance)
+                            ? "text-black"
+                            : "bg-neon/10 text-neon hover:bg-neon/20"
+                        }`}
+                        style={capital === Math.floor(walletBalance.available_balance) ? { backgroundColor: preset.color } : undefined}
+                      >
+                        Full Balance
+                      </button>
+                    )}
                     {[1000, 5000, 10000, 25000].map((amount) => (
                       <button
                         key={amount}
