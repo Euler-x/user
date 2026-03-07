@@ -8,7 +8,7 @@ import {
   Area,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
@@ -30,16 +30,24 @@ import {
   Shield,
   Wallet,
   RefreshCw,
+  Play,
+  Pause,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { PageSpinner } from "@/components/ui/Spinner";
 import StatusBadge from "@/components/ui/StatusBadge";
+import Tooltip from "@/components/ui/Tooltip";
+import Sparkline from "@/components/charts/Sparkline";
+import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
+import GettingStartedCard from "@/components/dashboard/GettingStartedCard";
+import TickerBar from "@/components/dashboard/TickerBar";
 import useStrategies from "@/hooks/useStrategies";
 import useSignals from "@/hooks/useSignals";
 import useExecutions from "@/hooks/useExecutions";
 import useAnalytics from "@/hooks/useAnalytics";
 import useMarketData from "@/hooks/useMarketData";
 import useWalletBalance from "@/hooks/useWalletBalance";
+import useBilling from "@/hooks/useBilling";
 import { useAuthStore } from "@/stores/authStore";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
 
@@ -200,6 +208,8 @@ export default function DashboardPage() {
   const {
     strategies,
     fetchStrategies,
+    activateStrategy,
+    pauseStrategy,
     loading: stratLoading,
   } = useStrategies();
   const { fetchSignals, loading: sigLoading } = useSignals();
@@ -218,6 +228,8 @@ export default function DashboardPage() {
     fetchBalance,
   } = useWalletBalance();
 
+  const { subscription, fetchSubscription } = useBilling();
+
   const [liveSignals, setLiveSignals] = useState(0);
   const [chartPeriod, setChartPeriod] = useState<30 | 90>(30);
   const hasWallet = user?.has_wallet;
@@ -228,10 +240,11 @@ export default function DashboardPage() {
       (d) => d && setLiveSignals(d.total)
     );
     fetchExecutions({ page: 1, page_size: 5 });
+    fetchSubscription();
     if (hasWallet) {
       fetchBalance();
     }
-  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, hasWallet]);
+  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, fetchSubscription, hasWallet]);
 
   useEffect(() => {
     fetchOverview(chartPeriod);
@@ -266,6 +279,20 @@ export default function DashboardPage() {
     ...topGainers.slice(0, 5),
     ...topLosers.slice(0, 3),
   ].slice(0, 8);
+
+  // Ticker items from market data
+  const tickerItems = [...topGainers.slice(0, 8), ...topLosers.slice(0, 4)]
+    .filter((t) => t.midPrice > 0)
+    .map((t) => ({
+      symbol: t.symbol,
+      price: t.midPrice,
+      change: t.change24h ?? 0,
+    }));
+
+  // Sparkline data from equity curve
+  const pnlSparkline = equityCurve.map((p) => p.cumulative_pnl);
+
+  const isSubscribed = subscription?.status === "active" || subscription?.status === "expiring_soon";
 
   return (
     <PageTransition>
@@ -313,6 +340,19 @@ export default function DashboardPage() {
             </Link>
           </div>
         </motion.div>
+
+        {/* ── Welcome + Onboarding ── */}
+        <WelcomeBanner />
+        <GettingStartedCard
+          emailVerified={user?.email_verified ?? false}
+          hasWallet={!!hasWallet}
+          isSubscribed={!!isSubscribed}
+          strategyCount={strategies.length}
+          executionCount={executions.length}
+        />
+
+        {/* ── Market Ticker ── */}
+        <TickerBar items={tickerItems} />
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* ── Wallet Balance ── */}
@@ -455,9 +495,16 @@ export default function DashboardPage() {
             animate="show"
           >
             <div className={`rounded-xl ${CARD_ACCENTS.pnl.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.pnl.hoverBorder} ${CARD_ACCENTS.pnl.shadow}`}>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-                Total PnL
-              </p>
+              <div className="flex items-center justify-between">
+                <Tooltip content="Net profit/loss across all strategies for the selected period" placement="right">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500 cursor-help">
+                    Total PnL
+                  </p>
+                </Tooltip>
+                {pnlSparkline.length >= 2 && (
+                  <Sparkline data={pnlSparkline} color={pnlPositive ? NEON : RED} />
+                )}
+              </div>
               <p
                 className="mt-3 font-serif text-2xl font-semibold tracking-tight lg:text-3xl"
                 style={{ color: pnlPositive ? NEON : RED }}
@@ -495,9 +542,11 @@ export default function DashboardPage() {
             animate="show"
           >
             <div className={`rounded-xl ${CARD_ACCENTS.winRate.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.winRate.hoverBorder} ${CARD_ACCENTS.winRate.shadow}`}>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-                Win Rate
-              </p>
+              <Tooltip content="Percentage of trades that closed with a positive PnL" placement="bottom">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500 cursor-help">
+                  Win Rate
+                </p>
+              </Tooltip>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {overview ? `${overview.win_rate.toFixed(1)}%` : "\u2014"}
               </p>
@@ -528,9 +577,11 @@ export default function DashboardPage() {
             animate="show"
           >
             <div className={`rounded-xl ${CARD_ACCENTS.sharpe.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.sharpe.hoverBorder} ${CARD_ACCENTS.sharpe.shadow}`}>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-                Sharpe Ratio
-              </p>
+              <Tooltip content="Risk-adjusted return. Above 1.0 is favorable, above 2.0 is exceptional" placement="bottom">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500 cursor-help">
+                  Sharpe Ratio
+                </p>
+              </Tooltip>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {overview ? overview.sharpe_ratio.toFixed(2) : "\u2014"}
               </p>
@@ -567,9 +618,11 @@ export default function DashboardPage() {
             animate="show"
           >
             <div className={`rounded-xl ${CARD_ACCENTS.activity.border} bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 ${CARD_ACCENTS.activity.hoverBorder} ${CARD_ACCENTS.activity.shadow}`}>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-                Activity
-              </p>
+              <Tooltip content="Active strategies vs total. Includes live signals and recent trades" placement="bottom">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500 cursor-help">
+                  Activity
+                </p>
+              </Tooltip>
               <p className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                 {activeStrategies.length}
                 <span className="ml-1 font-sans text-sm font-normal text-gray-600">
@@ -677,7 +730,7 @@ export default function DashboardPage() {
                       tickLine={false}
                       width={72}
                     />
-                    <Tooltip content={<ChartTooltip />} />
+                    <RechartsTooltip content={<ChartTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="cumulative_pnl"
@@ -751,7 +804,25 @@ export default function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 text-gray-700 transition-colors duration-300 group-hover:text-gray-500" />
+                        <div className="flex items-center gap-1">
+                          <Tooltip content={s.is_active ? "Pause strategy" : "Activate strategy"} placement="left">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                s.is_active ? pauseStrategy(s.id) : activateStrategy(s.id);
+                              }}
+                              className="p-1 rounded-md hover:bg-white/5 transition-colors"
+                            >
+                              {s.is_active ? (
+                                <Pause className="h-3 w-3 text-amber-400" />
+                              ) : (
+                                <Play className="h-3 w-3 text-neon" />
+                              )}
+                            </button>
+                          </Tooltip>
+                          <ChevronRight className="h-3.5 w-3.5 text-gray-700 transition-colors duration-300 group-hover:text-gray-500" />
+                        </div>
                       </Link>
                     );
                   })}

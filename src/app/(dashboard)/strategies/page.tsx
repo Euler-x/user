@@ -14,6 +14,7 @@ import PageTransition from "@/components/PageTransition";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { PageSpinner } from "@/components/ui/Spinner";
+import Tooltip from "@/components/ui/Tooltip";
 import useStrategies from "@/hooks/useStrategies";
 import useBilling from "@/hooks/useBilling";
 import { formatCurrency, capitalize } from "@/lib/utils";
@@ -362,17 +363,23 @@ function PresetCard({
           {/* Key metrics row */}
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-white/[0.03] rounded-lg py-2 px-1">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Risk</p>
+              <Tooltip content="Determines position sizing, stop-loss tightness, and overall exposure" placement="top">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Risk</p>
+              </Tooltip>
               <p className="text-sm font-semibold" style={{ color: preset.color }}>
                 {preset.riskTolerance}
               </p>
             </div>
             <div className="bg-white/[0.03] rounded-lg py-2 px-1">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Frequency</p>
+              <Tooltip content="Expected number of trades per day based on this strategy type" placement="top">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Frequency</p>
+              </Tooltip>
               <p className="text-sm font-semibold text-white">{preset.tradeFrequency}</p>
             </div>
             <div className="bg-white/[0.03] rounded-lg py-2 px-1">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Leverage</p>
+              <Tooltip content="Maximum leverage multiplier applied to trades" placement="top">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Leverage</p>
+              </Tooltip>
               <p className="text-sm font-semibold text-white">{preset.leverage_limit}x</p>
             </div>
           </div>
@@ -1029,17 +1036,23 @@ export default function StrategiesPage() {
 
                       <div className="grid grid-cols-3 gap-3 text-center mb-3">
                         <div className="bg-white/[0.03] rounded-lg py-2">
-                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Capital</p>
+                          <Tooltip content="Amount of capital allocated to this strategy" placement="top">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Capital</p>
+                          </Tooltip>
                           <p className="text-sm font-medium text-white">
                             {formatCurrency(strategy.capital_allocation)}
                           </p>
                         </div>
                         <div className="bg-white/[0.03] rounded-lg py-2">
-                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Leverage</p>
+                          <Tooltip content="Maximum leverage multiplier for trades" placement="top">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Leverage</p>
+                          </Tooltip>
                           <p className="text-sm font-medium text-white">{strategy.leverage_limit}x</p>
                         </div>
                         <div className="bg-white/[0.03] rounded-lg py-2">
-                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Drawdown</p>
+                          <Tooltip content="Maximum portfolio drawdown before the strategy pauses" placement="top">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Drawdown</p>
+                          </Tooltip>
                           <p className="text-sm font-medium text-white">
                             {strategy.max_drawdown_percent}%
                           </p>

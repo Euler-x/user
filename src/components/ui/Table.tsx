@@ -1,10 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface Column<T> {
   key: string;
   header: string;
+  headerTooltip?: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
 }
@@ -62,7 +64,15 @@ export default function Table<T extends object>({
                     col.className
                   )}
                 >
-                  {col.header}
+                  {col.headerTooltip ? (
+                    <Tooltip content={col.headerTooltip} placement="top">
+                      <span className="cursor-help border-b border-dotted border-gray-600">
+                        {col.header}
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    col.header
+                  )}
                 </th>
               ))}
             </tr>

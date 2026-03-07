@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import MobileNav from "@/components/layout/MobileNav";
+import ShortcutsModal from "@/components/ui/ShortcutsModal";
+import CommandPalette from "@/components/ui/CommandPalette";
+import { useKeyboardShortcuts, type Shortcut } from "@/hooks/useKeyboardShortcuts";
 import { useAuthStore, useAuthHasHydrated } from "@/stores/authStore";
 
 /** Max time (ms) to wait for the silent refresh before forcing a redirect. */
@@ -12,12 +15,38 @@ const REFRESH_TIMEOUT_MS = 10_000;
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
   const hasHydrated = useAuthHasHydrated();
   const redirecting = useRef(false);
+
+  const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
+  const openPalette = useCallback(() => setPaletteOpen(true), []);
+  const closeAll = useCallback(() => {
+    setShortcutsOpen(false);
+    setPaletteOpen(false);
+  }, []);
+
+  const shortcuts: Shortcut[] = useMemo(
+    () => [
+      { key: "?", description: "Show keyboard shortcuts", action: openShortcuts, category: "General" },
+      { key: "Ctrl+k", description: "Open command palette", action: openPalette, category: "General" },
+      { key: "Escape", description: "Close dialogs", action: closeAll, category: "General" },
+      { key: "g d", description: "Go to Dashboard", action: () => router.push("/dashboard"), category: "Navigation" },
+      { key: "g s", description: "Go to Strategies", action: () => router.push("/strategies"), category: "Navigation" },
+      { key: "g x", description: "Go to Executions", action: () => router.push("/executions"), category: "Navigation" },
+      { key: "g a", description: "Go to Analytics", action: () => router.push("/analytics"), category: "Navigation" },
+      { key: "g b", description: "Go to Billing", action: () => router.push("/billing"), category: "Navigation" },
+      { key: "g t", description: "Go to Transactions", action: () => router.push("/transactions"), category: "Navigation" },
+    ],
+    [router, openShortcuts, openPalette, closeAll]
+  );
+
+  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     // Wait until Zustand has rehydrated from localStorage before making any
@@ -82,6 +111,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Topbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="p-4 lg:p-8">{children}</main>
       </div>
+      <ShortcutsModal
+        isOpen={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        shortcuts={shortcuts}
+      />
+      <CommandPalette
+        isOpen={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
     </div>
   );
 }

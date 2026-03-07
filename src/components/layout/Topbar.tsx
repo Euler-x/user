@@ -1,9 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Menu, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { shortenAddress } from "@/lib/utils";
+import NotificationCenter from "@/components/layout/NotificationCenter";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -53,9 +55,9 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         {/* Right: Actions + User */}
         {user && (
           <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
-              <Bell className="h-4 w-4" />
-            </button>
+            <Tooltip content="Notifications" placement="bottom">
+              <NotificationCenter />
+            </Tooltip>
 
             <div className="h-5 w-px bg-white/5" />
 

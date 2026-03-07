@@ -27,6 +27,7 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import useBilling from "@/hooks/useBilling";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface NavItem {
   label: string;
@@ -116,7 +117,9 @@ export default function Sidebar() {
                   <span className="text-[10px] text-gray-500">Free plan</span>
                 )}
                 {user?.has_wallet && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-neon animate-glow-pulse" />
+                  <Tooltip content="Wallet connected" placement="right">
+                    <span className="h-1.5 w-1.5 rounded-full bg-neon animate-glow-pulse" />
+                  </Tooltip>
                 )}
               </div>
             </div>

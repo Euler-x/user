@@ -3,6 +3,7 @@
 import { Toaster } from "react-hot-toast";
 import AppErrorBoundary from "../ErrorBoundary";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
+import TradeAlertContainer from "@/components/ui/TradeAlert";
 
 function TokenRefreshGate() {
   useTokenRefresh();
@@ -15,6 +16,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       {/* Silently restore access token from refresh token on page load */}
       <TokenRefreshGate />
       {children}
+      <TradeAlertContainer />
       <Toaster
         position="top-right"
         toastOptions={{

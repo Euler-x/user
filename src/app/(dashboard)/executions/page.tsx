@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Activity } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Table from "@/components/ui/Table";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Pagination from "@/components/ui/Pagination";
 import { PageSpinner } from "@/components/ui/Spinner";
+import Tooltip from "@/components/ui/Tooltip";
+import EmptyState from "@/components/ui/EmptyState";
 import useExecutions from "@/hooks/useExecutions";
 import usePagination from "@/hooks/usePagination";
 import { formatCurrency, formatDateTime, formatPnl } from "@/lib/utils";
@@ -18,6 +20,7 @@ const columns = [
   {
     key: "direction",
     header: "Direction",
+    headerTooltip: "Buy (long) or Sell (short) trade direction",
     render: (e: Execution) => (
       <span className={e.direction === "buy" ? "text-neon font-medium" : "text-red-400 font-medium"}>
         {e.direction.toUpperCase()}
@@ -27,31 +30,37 @@ const columns = [
   {
     key: "order_type",
     header: "Type",
+    headerTooltip: "Order type: market or limit",
     render: (e: Execution) => <span className="uppercase text-gray-400">{e.order_type}</span>,
   },
   {
     key: "entry_price",
     header: "Entry",
+    headerTooltip: "Price at which the position was opened",
     render: (e: Execution) => formatCurrency(e.entry_price),
   },
   {
     key: "exit_price",
     header: "Exit",
+    headerTooltip: "Price at which the position was closed",
     render: (e: Execution) => e.exit_price ? formatCurrency(e.exit_price) : "—",
   },
   {
     key: "quantity",
     header: "Qty",
+    headerTooltip: "Number of units traded",
     render: (e: Execution) => e.quantity.toFixed(4),
   },
   {
     key: "leverage",
     header: "Lev",
+    headerTooltip: "Leverage multiplier used for this trade",
     render: (e: Execution) => `${e.leverage}x`,
   },
   {
     key: "pnl",
     header: "PnL",
+    headerTooltip: "Profit or loss from this trade in USD",
     render: (e: Execution) => {
       const { text, color } = formatPnl(e.pnl);
       return <span className={`font-medium ${color}`}>{text}</span>;
@@ -106,11 +115,21 @@ export default function ExecutionsPage() {
           <p className="text-sm text-gray-400 mt-1">Your trade execution history</p>
         </div>
 
-        <Table
-          columns={columns}
-          data={executions}
-          emptyMessage="No executions yet"
-        />
+        {executions.length === 0 ? (
+          <EmptyState
+            icon={Activity}
+            title="No Executions Yet"
+            description="Once your strategies generate trades, they'll appear here with full details."
+            actionLabel="View Strategies"
+            actionHref="/strategies"
+          />
+        ) : (
+          <Table
+            columns={columns}
+            data={executions}
+            emptyMessage="No executions yet"
+          />
+        )}
 
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>

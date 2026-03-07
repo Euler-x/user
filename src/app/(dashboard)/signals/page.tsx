@@ -11,6 +11,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import Pagination from "@/components/ui/Pagination";
 import { PageSpinner } from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
+import Tooltip from "@/components/ui/Tooltip";
 import useSignals from "@/hooks/useSignals";
 import useBilling from "@/hooks/useBilling";
 import usePagination from "@/hooks/usePagination";
@@ -123,25 +124,33 @@ export default function SignalsPage() {
                       <p className="text-white">{formatCurrency(signal.entry_price)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Confidence</p>
+                      <Tooltip content="AI model's certainty level for this trade signal" placement="top">
+                        <p className="text-xs text-gray-500 cursor-help">Confidence</p>
+                      </Tooltip>
                       <p className="text-neon">{formatNumber(signal.confidence * 100, 0)}%</p>
                     </div>
                     {signal.stop_loss && (
                       <div>
-                        <p className="text-xs text-gray-500">Stop Loss</p>
+                        <Tooltip content="Price at which the position will be automatically closed to limit losses" placement="top">
+                        <p className="text-xs text-gray-500 cursor-help">Stop Loss</p>
+                      </Tooltip>
                         <p className="text-red-400">{formatCurrency(signal.stop_loss)}</p>
                       </div>
                     )}
                     {signal.take_profit && (
                       <div>
-                        <p className="text-xs text-gray-500">Take Profit</p>
+                        <Tooltip content="Target price at which the position will be closed for profit" placement="top">
+                        <p className="text-xs text-gray-500 cursor-help">Take Profit</p>
+                      </Tooltip>
                         <p className="text-neon">{formatCurrency(signal.take_profit)}</p>
                       </div>
                     )}
                   </div>
                   {signal.risk_reward_ratio && (
                     <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                      <span className="text-gray-500">R:R Ratio</span>
+                      <Tooltip content="Risk-to-Reward ratio. Higher is better — e.g. 2.0 means potential reward is 2x the risk" placement="left">
+                        <span className="text-gray-500 cursor-help">R:R Ratio</span>
+                      </Tooltip>
                       <Badge variant="neon">{formatNumber(signal.risk_reward_ratio, 1)}</Badge>
                     </div>
                   )}
