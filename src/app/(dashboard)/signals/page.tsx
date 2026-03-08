@@ -2,21 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Zap, TrendingUp, TrendingDown, Minus, CreditCard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Zap, TrendingUp, TrendingDown, Minus, CreditCard,
+  Brain, Activity, BarChart3, Clock, ExternalLink, X,
+} from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import GlowCard from "@/components/ui/GlowCard";
 import Badge from "@/components/ui/Badge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Pagination from "@/components/ui/Pagination";
-import { PageSpinner } from "@/components/ui/Spinner";
+import Spinner, { PageSpinner } from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Tooltip from "@/components/ui/Tooltip";
 import useSignals from "@/hooks/useSignals";
 import useBilling from "@/hooks/useBilling";
 import usePagination from "@/hooks/usePagination";
-import { formatCurrency, formatDateTime, formatNumber } from "@/lib/utils";
-import type { Signal } from "@/types";
+import { formatCurrency, formatDateTime, formatNumber, capitalize } from "@/lib/utils";
+import type { Signal, SignalDetail } from "@/types";
 
 const directionIcons = {
   buy: <TrendingUp className="h-4 w-4 text-neon" />,
@@ -24,13 +27,257 @@ const directionIcons = {
   hold: <Minus className="h-4 w-4 text-yellow-400" />,
 };
 
+const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
+
+/* ──────────────────────────────────────────────────────────
+   SIGNAL DETAIL MODAL
+   ────────────────────────────────────────────────────────── */
+
+function SignalDetailModal({
+  signal,
+  loading: detailLoading,
+  onClose,
+}: {
+  signal: SignalDetail | null;
+  loading: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {(signal || detailLoading) && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            onClick={onClose}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-dark-200 border border-white/10 shadow-neon-lg scrollbar-none"
+            >
+              {detailLoading || !signal ? (
+                <div className="p-12 flex items-center justify-center">
+                  <Spinner size="lg" />
+                </div>
+              ) : (
+                <>
+                  {/* Header */}
+                  <div className="sticky top-0 z-10 bg-dark-200/95 backdrop-blur-xl border-b border-white/5 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                        signal.direction === "buy" ? "bg-neon/10" : signal.direction === "sell" ? "bg-red-500/10" : "bg-yellow-500/10"
+                      }`}>
+                        {directionIcons[signal.direction]}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-bold text-white">{signal.symbol}</h2>
+                          <Badge variant={signal.direction === "buy" ? "neon" : signal.direction === "sell" ? "danger" : "warning"}>
+                            {signal.direction.toUpperCase()}
+                          </Badge>
+                          <StatusBadge status={signal.status} />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{formatDateTime(signal.created_at)}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* Price Levels */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-neon" /> Price Levels
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                          <p className="text-xs text-gray-500">Entry Price</p>
+                          <p className="text-white font-semibold mt-1">{formatCurrency(signal.entry_price)}</p>
+                        </div>
+                        <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                          <p className="text-xs text-gray-500">Confidence</p>
+                          <p className="text-neon font-semibold mt-1">{formatNumber(signal.confidence * 100, 1)}%</p>
+                        </div>
+                        {signal.stop_loss && (
+                          <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                            <p className="text-xs text-gray-500">Stop Loss</p>
+                            <p className="text-red-400 font-semibold mt-1">{formatCurrency(signal.stop_loss)}</p>
+                          </div>
+                        )}
+                        {signal.take_profit && (
+                          <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                            <p className="text-xs text-gray-500">Take Profit</p>
+                            <p className="text-neon font-semibold mt-1">{formatCurrency(signal.take_profit)}</p>
+                          </div>
+                        )}
+                      </div>
+                      {signal.risk_reward_ratio && (
+                        <div className="mt-3 flex items-center gap-2 text-sm">
+                          <span className="text-gray-500">Risk:Reward Ratio</span>
+                          <Badge variant="neon">{formatNumber(signal.risk_reward_ratio, 2)}</Badge>
+                        </div>
+                      )}
+                      {signal.expires_at && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          Expires: {formatDateTime(signal.expires_at)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Indicators */}
+                    {signal.indicators && Object.keys(signal.indicators).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-cyan-400" /> Market Indicators
+                        </h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {Object.entries(signal.indicators).map(([key, value]) => (
+                            <div key={key} className="bg-white/[0.02] rounded-lg px-3 py-2 border border-white/5">
+                              <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                                {key.replace(/_/g, " ")}
+                              </p>
+                              <p className="text-sm text-white mt-0.5">{String(value)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Model Responses */}
+                    {signal.model_responses && Object.keys(signal.model_responses).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-purple-400" /> AI Model Consensus
+                        </h3>
+                        <div className="space-y-2">
+                          {Object.entries(signal.model_responses).map(([modelId, response]) => {
+                            const r = response as Record<string, unknown>;
+                            const modelSignal = String(r.signal || "HOLD").toUpperCase();
+                            return (
+                              <div
+                                key={modelId}
+                                className="bg-white/[0.02] rounded-xl p-3 border border-white/5"
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-medium text-gray-300 truncate max-w-[200px]">
+                                    {modelId.split("/").pop() || modelId}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant={modelSignal === "BUY" ? "neon" : modelSignal === "SELL" ? "danger" : "default"}
+                                    >
+                                      {modelSignal}
+                                    </Badge>
+                                    {r.confidence != null && (
+                                      <span className="text-xs text-gray-400">
+                                        {formatNumber(Number(r.confidence) * 100, 0)}%
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {r.reasoning ? (
+                                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                    {String(r.reasoning)}
+                                  </p>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Linked Executions */}
+                    {signal.executions && signal.executions.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-amber-400" /> Executions
+                        </h3>
+                        <div className="space-y-2">
+                          {signal.executions.map((exec) => (
+                            <div
+                              key={exec.id}
+                              className="bg-white/[0.02] rounded-xl p-3 border border-white/5 flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className={`text-xs font-semibold ${exec.direction === "buy" ? "text-neon" : "text-red-400"}`}>
+                                  {exec.direction.toUpperCase()}
+                                </span>
+                                <span className="text-sm text-white">
+                                  {exec.quantity.toFixed(4)} @ {formatCurrency(exec.entry_price)}
+                                </span>
+                                <span className="text-xs text-gray-500">{exec.leverage}x</span>
+                                <StatusBadge status={exec.status} />
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {exec.pnl != null && (
+                                  <span className={`text-sm font-medium ${exec.pnl >= 0 ? "text-neon" : "text-red-400"}`}>
+                                    {exec.pnl >= 0 ? "+" : ""}{formatCurrency(exec.pnl)}
+                                  </span>
+                                )}
+                                {exec.tx_hash && (
+                                  <a
+                                    href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-neon/70 hover:text-neon transition-colors"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   SIGNALS PAGE
+   ────────────────────────────────────────────────────────── */
+
 export default function SignalsPage() {
-  const { signals, totalPages, loading, fetchSignals, fetchLive } = useSignals();
+  const { signals, totalPages, loading, fetchSignals, fetchLive, getSignal } = useSignals();
   const { subscription, loading: billingLoading, fetchSubscription } = useBilling();
   const { page, pageSize, setPage } = usePagination();
   const [liveSignals, setLiveSignals] = useState<Signal[]>([]);
   const [tab, setTab] = useState<"all" | "live">("live");
   const [subChecked, setSubChecked] = useState(false);
+  const [selectedSignal, setSelectedSignal] = useState<SignalDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const openSignalDetail = async (id: string) => {
+    setDetailLoading(true);
+    setSelectedSignal(null);
+    try {
+      const detail = await getSignal(id);
+      setSelectedSignal(detail);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchSubscription().then(() => setSubChecked(true));
@@ -110,7 +357,7 @@ export default function SignalsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
               >
-                <GlowCard>
+                <GlowCard className="cursor-pointer" onClick={() => openSignalDetail(signal.id)}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {directionIcons[signal.direction]}
@@ -163,6 +410,12 @@ export default function SignalsPage() {
 
         {tab === "all" && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       </div>
+
+      <SignalDetailModal
+        signal={selectedSignal}
+        loading={detailLoading}
+        onClose={() => { setSelectedSignal(null); setDetailLoading(false); }}
+      />
     </PageTransition>
   );
 }
