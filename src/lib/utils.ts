@@ -24,11 +24,19 @@ export function formatDateTime(date: string | Date): string {
 }
 
 export function formatCurrency(amount: number, currency = "USD"): string {
+  const abs = Math.abs(amount);
+  // For small prices (< $1), preserve precision — show enough decimals
+  // so at least 4 significant digits are visible (up to 8 max)
+  let maxDecimals = 2;
+  if (abs > 0 && abs < 1) {
+    const leadingZeros = Math.max(0, -Math.floor(Math.log10(abs)) - 1);
+    maxDecimals = Math.max(6, Math.min(leadingZeros + 4, 8));
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: maxDecimals,
   }).format(amount);
 }
 
