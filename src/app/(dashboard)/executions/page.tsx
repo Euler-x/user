@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ExternalLink, Activity } from "lucide-react";
+import { ExternalLink, Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Table from "@/components/ui/Table";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -68,8 +68,29 @@ const columns = [
   },
   {
     key: "status",
-    header: "Status",
-    render: (e: Execution) => <StatusBadge status={e.status} />,
+    header: "Result",
+    headerTooltip: "Execution result — hover failed trades for details",
+    render: (e: Execution) => {
+      if (e.status === "failed") {
+        return (
+          <Tooltip content={e.error_message || "Unknown error"}>
+            <span className="inline-flex items-center gap-1.5 text-red-400 text-xs font-medium cursor-help">
+              <AlertCircle className="h-3.5 w-3.5" />
+              Failed
+            </span>
+          </Tooltip>
+        );
+      }
+      if (e.status === "filled") {
+        return (
+          <span className="inline-flex items-center gap-1.5 text-neon text-xs font-medium">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Filled
+          </span>
+        );
+      }
+      return <StatusBadge status={e.status} />;
+    },
   },
   {
     key: "created_at",
