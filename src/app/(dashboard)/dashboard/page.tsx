@@ -259,11 +259,11 @@ export default function DashboardPage() {
     overview?.total_pnl ??
     executions.reduce((sum, e) => sum + (e.pnl ?? 0), 0);
   const pnlPositive = totalPnl >= 0;
-  const totalCapital = activeStrategies.reduce(
-    (sum, s) => sum + s.capital_allocation,
+  const totalAllocationPct = activeStrategies.reduce(
+    (sum, s) => sum + s.allocation_pct,
     0
   );
-  const returnPct = totalCapital > 0 ? (totalPnl / totalCapital) * 100 : 0;
+  const returnPct = totalAllocationPct > 0 ? (totalPnl / totalAllocationPct) * 100 : 0;
   const chartColor =
     equityCurve.length > 0 &&
     equityCurve[equityCurve.length - 1]?.cumulative_pnl >= 0

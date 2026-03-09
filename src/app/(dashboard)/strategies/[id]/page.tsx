@@ -45,7 +45,7 @@ export default function StrategyDetailPage() {
           risk_profile: s.risk_profile,
           leverage_limit: s.leverage_limit,
           max_positions: s.max_positions,
-          capital_allocation: s.capital_allocation,
+          allocation_pct: s.allocation_pct,
           max_drawdown_percent: s.max_drawdown_percent,
           daily_loss_cap_percent: s.daily_loss_cap_percent ?? undefined,
           target_volatility: s.target_volatility ?? undefined,
@@ -178,7 +178,7 @@ export default function StrategyDetailPage() {
         {/* Stats Overview */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: "Capital", value: formatCurrency(strategy.capital_allocation), icon: BarChart3 },
+            { label: "Allocation %", value: `${strategy.allocation_pct}%`, icon: BarChart3 },
             { label: "Leverage", value: `${strategy.leverage_limit}x`, icon: TrendingUp },
             { label: "Positions", value: strategy.max_positions.toString(), icon: Layers },
             { label: "Drawdown", value: `${strategy.max_drawdown_percent}%`, icon: AlertTriangle },
@@ -304,10 +304,12 @@ export default function StrategyDetailPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Capital (USD)"
+                label="Allocation %"
                 type="number"
-                value={form.capital_allocation ?? strategy.capital_allocation}
-                onChange={(e) => setForm({ ...form, capital_allocation: Number(e.target.value) })}
+                min={1}
+                max={100}
+                value={form.allocation_pct ?? strategy.allocation_pct}
+                onChange={(e) => setForm({ ...form, allocation_pct: Math.min(100, Math.max(1, Number(e.target.value))) })}
               />
               <Input
                 label="Leverage"

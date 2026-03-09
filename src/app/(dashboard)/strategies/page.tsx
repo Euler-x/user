@@ -39,7 +39,7 @@ interface StrategyPreset {
   leverage_limit: number;
   max_positions: number;
   max_drawdown_percent: number;
-  default_capital: number;
+  default_allocation_pct: number;
   riskTolerance: string;
   tradeFrequency: string;
   avg_trades_day: string;
@@ -71,7 +71,7 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     leverage_limit: 1,
     max_positions: 3,
     max_drawdown_percent: 5,
-    default_capital: 5000,
+    default_allocation_pct: 10,
     riskTolerance: "Low",
     tradeFrequency: "Low",
     avg_trades_day: "2 – 4",
@@ -107,7 +107,7 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     leverage_limit: 3,
     max_positions: 5,
     max_drawdown_percent: 10,
-    default_capital: 10000,
+    default_allocation_pct: 25,
     riskTolerance: "Medium",
     tradeFrequency: "Medium",
     avg_trades_day: "5 – 10",
@@ -143,7 +143,7 @@ const STRATEGY_PRESETS: StrategyPreset[] = [
     leverage_limit: 10,
     max_positions: 10,
     max_drawdown_percent: 25,
-    default_capital: 25000,
+    default_allocation_pct: 50,
     riskTolerance: "High",
     tradeFrequency: "High",
     avg_trades_day: "10 – 25",
@@ -396,7 +396,7 @@ function PresetCard({
 
 interface DeployParams {
   name: string;
-  capital: number;
+  allocation_pct: number;
   leverage_limit: number;
   max_positions: number;
   max_drawdown_percent: number;
@@ -423,7 +423,7 @@ function DetailPanel({
 }) {
   const { balance: walletBalance, fetchBalance } = useWalletBalance();
   const [name, setName] = useState(`${preset.name} Strategy`);
-  const [capital, setCapital] = useState(preset.default_capital);
+  const [allocationPct, setAllocationPct] = useState(preset.default_allocation_pct);
   const [leverage, setLeverage] = useState(preset.leverage_limit);
   const [maxPositions, setMaxPositions] = useState(preset.max_positions);
   const [maxDrawdown, setMaxDrawdown] = useState(preset.max_drawdown_percent);
@@ -452,14 +452,10 @@ function DetailPanel({
     setTargetReturnMax(preset.target_return_max);
   }, [preset]);
 
-  // Set capital from wallet balance when available
+  // Reset allocation percentage when preset changes
   useEffect(() => {
-    if (walletBalance?.available_balance && walletBalance.available_balance > 0) {
-      setCapital(Math.floor(walletBalance.available_balance));
-    } else {
-      setCapital(preset.default_capital);
-    }
-  }, [walletBalance, preset.default_capital]);
+    setAllocationPct(preset.default_allocation_pct);
+  }, [preset.default_allocation_pct]);
 
   const Icon = preset.icon;
 
@@ -674,46 +670,38 @@ function DetailPanel({
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-300">
-                    Capital Allocation (USD)
+                    Allocation % of Wallet Balance
                   </label>
                   {walletBalance?.available_balance != null && walletBalance.available_balance > 0 && (
                     <p className="text-xs text-gray-500">
                       Wallet balance: <span className="text-neon">{formatCurrency(walletBalance.available_balance)}</span>
+                      {" "}&middot;{" "}
+                      <span className="text-gray-400">
+                        {allocationPct}% = {formatCurrency(walletBalance.available_balance * allocationPct / 100)}
+                      </span>
                     </p>
                   )}
                   <input
                     type="number"
-                    value={capital}
-                    onChange={(e) => setCapital(Number(e.target.value))}
-                    min={100}
+                    value={allocationPct}
+                    onChange={(e) => setAllocationPct(Math.min(100, Math.max(1, Number(e.target.value))))}
+                    min={1}
+                    max={100}
                     className="w-full bg-dark-50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-colors"
                   />
                   <div className="flex gap-2 mt-2 flex-wrap">
-                    {walletBalance?.available_balance != null && walletBalance.available_balance >= 100 && (
+                    {[10, 25, 50, 75, 100].map((pct) => (
                       <button
-                        onClick={() => setCapital(Math.floor(walletBalance.available_balance))}
+                        key={pct}
+                        onClick={() => setAllocationPct(pct)}
                         className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                          capital === Math.floor(walletBalance.available_balance)
-                            ? "text-black"
-                            : "bg-neon/10 text-neon hover:bg-neon/20"
-                        }`}
-                        style={capital === Math.floor(walletBalance.available_balance) ? { backgroundColor: preset.color } : undefined}
-                      >
-                        Full Balance
-                      </button>
-                    )}
-                    {[1000, 5000, 10000, 25000].map((amount) => (
-                      <button
-                        key={amount}
-                        onClick={() => setCapital(amount)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                          capital === amount
+                          allocationPct === pct
                             ? "text-black"
                             : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
                         }`}
-                        style={capital === amount ? { backgroundColor: preset.color } : undefined}
+                        style={allocationPct === pct ? { backgroundColor: preset.color } : undefined}
                       >
-                        ${amount >= 1000 ? `${amount / 1000}K` : amount}
+                        {pct}%
                       </button>
                     ))}
                   </div>
@@ -807,9 +795,9 @@ function DetailPanel({
                     <span className="text-white font-medium text-right capitalize">{timeframe}</span>
                     <span className="text-gray-500">Target Return</span>
                     <span className="text-white font-medium text-right">{targetReturnMin}–{targetReturnMax}%</span>
-                    <span className="text-gray-500">Capital</span>
+                    <span className="text-gray-500">Allocation</span>
                     <span className="font-medium text-right" style={{ color: preset.color }}>
-                      {formatCurrency(capital)}
+                      {allocationPct}%
                     </span>
                   </div>
                 </div>
@@ -818,7 +806,7 @@ function DetailPanel({
                   <Button
                     onClick={() => onCreate({
                       name,
-                      capital,
+                      allocation_pct: allocationPct,
                       leverage_limit: leverage,
                       max_positions: maxPositions,
                       max_drawdown_percent: maxDrawdown,
@@ -830,7 +818,7 @@ function DetailPanel({
                       target_return_max: targetReturnMax,
                     })}
                     loading={creating}
-                    disabled={!name || capital < 100}
+                    disabled={!name || allocationPct < 1 || allocationPct > 100}
                     className="w-full group"
                     size="lg"
                   >
@@ -897,7 +885,7 @@ export default function StrategiesPage() {
         name: params.name,
         strategy_type: selectedPreset.id,
         risk_profile: selectedPreset.risk_profile,
-        capital_allocation: params.capital,
+        allocation_pct: params.allocation_pct,
         leverage_limit: params.leverage_limit,
         max_positions: params.max_positions,
         max_drawdown_percent: params.max_drawdown_percent,
@@ -1069,11 +1057,11 @@ export default function StrategiesPage() {
 
                       <div className="grid grid-cols-3 gap-3 text-center mb-3">
                         <div className="bg-white/[0.03] rounded-lg py-2">
-                          <Tooltip content="Amount of capital allocated to this strategy" placement="top">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Capital</p>
+                          <Tooltip content="Percentage of wallet balance allocated to this strategy" placement="top">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider cursor-help">Allocation</p>
                           </Tooltip>
                           <p className="text-sm font-medium text-white">
-                            {formatCurrency(strategy.capital_allocation)}
+                            {strategy.allocation_pct}%
                           </p>
                         </div>
                         <div className="bg-white/[0.03] rounded-lg py-2">
