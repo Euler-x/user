@@ -13,7 +13,11 @@ export type SubscriptionStatus = "inactive" | "pending_payment" | "active" | "ex
 export type PaymentStatus = "waiting" | "confirming" | "confirmed" | "sending" | "partially_paid" | "finished" | "failed" | "refunded" | "expired";
 export type PlanStatus = "active" | "inactive" | "archived";
 export type BillingCycle = "monthly" | "quarterly" | "yearly";
-export type AmbassadorRank = "bronze" | "silver" | "gold" | "platinum" | "diamond";
+export type AmbassadorRank = "scout" | "guide" | "strategist" | "master";
+export type CommissionStatus = "pending" | "paid";
+export type BonusType = "conversion" | "retention" | "milestone" | "tier_promotion" | "annual_recognition";
+export type PayoutStatus = "pending" | "processing" | "paid" | "failed";
+export type TerritoryType = "geographic" | "demographic" | "platform";
 export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
 export type ContentCategory = "crypto_basics" | "ai_trading" | "risk_management" | "automated_trading" | "platform_guide";
@@ -215,6 +219,8 @@ export interface Ambassador {
   team_size: number;
   total_referrals: number;
   rewards_earned: number;
+  payout_address: string | null;
+  territory_id: string | null;
   created_at: string;
 }
 
@@ -229,6 +235,84 @@ export interface LeaderboardEntry {
 export interface ReferralResponse {
   referral_code: string;
   referral_link: string;
+}
+
+export interface ReferralItem {
+  joined_at: string;
+  plan_name: string | null;
+  plan_price: number | null;
+  is_subscribed: boolean;
+  rank: AmbassadorRank;
+}
+
+export interface TierProgress {
+  current_rank: AmbassadorRank;
+  next_rank: AmbassadorRank | null;
+  active_referrals: number;
+  required_active_referrals: number | null;
+  required_retention_pct: number | null;
+}
+
+export interface EarningsSummary {
+  total_commission_paid: number;
+  total_commission_pending: number;
+  current_month_commission: number;
+  next_payout_date: string;
+  active_referral_count: number;
+  retention_rate: number;
+  tier_progress: TierProgress;
+}
+
+export interface AmbassadorCommission {
+  id: string;
+  month: number;
+  year: number;
+  active_referral_count: number;
+  commission_rate: number | null;
+  commission_amount: number;
+  status: CommissionStatus;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface AmbassadorBonus {
+  id: string;
+  bonus_type: BonusType;
+  amount: number;
+  period: string | null;
+  description: string | null;
+  status: CommissionStatus;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface AmbassadorPayout {
+  id: string;
+  total_amount: number;
+  status: PayoutStatus;
+  payout_address: string | null;
+  admin_notes: string | null;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface TrainingModule {
+  key: string;
+  name: string;
+  tier: AmbassadorRank;
+  duration_min: number;
+  completed: boolean;
+  completed_at: string | null;
+}
+
+export interface AmbassadorTerritory {
+  id: string;
+  name: string;
+  territory_type: TerritoryType;
+  description: string | null;
+  revenue_share_pct: number;
+  master_ambassador_id: string | null;
+  ambassador_count: number;
 }
 
 // ── Support ────────────────────────────────────────────────

@@ -69,7 +69,7 @@ const columns = [
   {
     key: "status",
     header: "Result",
-    headerTooltip: "Execution result — hover failed trades for details",
+    headerTooltip: "Execution result",
     render: (e: Execution) => {
       if (e.status === "failed") {
         return (

@@ -64,6 +64,14 @@ export const ENDPOINTS = {
     LEADERBOARD: `${API}/ambassador/leaderboard`,
     REFERRAL: `${API}/ambassador/referral`,
     TEAM: `${API}/ambassador/team`,
+    REFERRALS: `${API}/ambassador/referrals`,
+    EARNINGS_SUMMARY: `${API}/ambassador/earnings-summary`,
+    COMMISSIONS: `${API}/ambassador/commissions`,
+    BONUSES: `${API}/ambassador/bonuses`,
+    PAYOUTS: `${API}/ambassador/payouts`,
+    TERRITORY: `${API}/ambassador/territory`,
+    TRAINING: `${API}/ambassador/training`,
+    PAYOUT_ADDRESS: `${API}/ambassador/payout-address`,
   },
 
   // Support
