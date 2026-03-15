@@ -244,7 +244,7 @@ export default function AmbassadorPage() {
     setReferral(data);
   };
 
-  const referralLink = referral?.referral_link || (ambassador?.referral_code ? `https://eulerx.network/ref/${ambassador.referral_code}` : null);
+  const referralLink = referral?.referral_link || (ambassador?.referral_code ? `https://eulerx.io/ref/${ambassador.referral_code}` : null);
   const referralCode = referral?.referral_code || ambassador?.referral_code;
 
   const handleCopy = () => {
