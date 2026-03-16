@@ -27,6 +27,7 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import useBilling from "@/hooks/useBilling";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import Tooltip from "@/components/ui/Tooltip";
 
 interface NavItem {
@@ -200,6 +201,9 @@ export default function Sidebar() {
               <ArrowRight className="h-3.5 w-3.5 text-neon/40 group-hover:text-neon group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </button>
           )}
+
+          {/* Language */}
+          <LanguageSwitcher compact />
 
           {/* Divider */}
           <div className="border-t border-white/5" />

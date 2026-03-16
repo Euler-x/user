@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { shortenAddress } from "@/lib/utils";
 import NotificationCenter from "@/components/layout/NotificationCenter";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import Tooltip from "@/components/ui/Tooltip";
 
 interface TopbarProps {
@@ -55,6 +56,8 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         {/* Right: Actions + User */}
         {user && (
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+
             <Tooltip content="Notifications" placement="bottom">
               <NotificationCenter />
             </Tooltip>

@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import useBilling from "@/hooks/useBilling";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 interface NavItem {
   label: string;
@@ -229,6 +230,9 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     <ArrowRight className="h-3.5 w-3.5 text-neon/40 group-hover:text-neon transition-all flex-shrink-0" />
                   </button>
                 )}
+
+                {/* Language */}
+                <LanguageSwitcher compact />
 
                 <div className="border-t border-white/5" />
 
