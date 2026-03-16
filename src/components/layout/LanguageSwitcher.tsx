@@ -36,41 +36,58 @@ function getStoredLanguage(): string {
   return localStorage.getItem(STORAGE_KEY) || "en";
 }
 
+/** Clear all googtrans cookies across path and domain variants */
+function clearGoogTransCookies() {
+  const hostname = window.location.hostname;
+  const expiry = "expires=Thu, 01 Jan 1970 00:00:00 UTC";
+  document.cookie = `googtrans=; ${expiry}; path=/;`;
+  document.cookie = `googtrans=; ${expiry}; path=/; domain=${hostname}`;
+  document.cookie = `googtrans=; ${expiry}; path=/; domain=.${hostname}`;
+}
+
+/** Set the hidden Google Translate <select> and fire a change event */
+function setTranslateCombo(value: string, retries = 3) {
+  const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+  if (select) {
+    select.value = value;
+    select.dispatchEvent(new Event("change"));
+    return;
+  }
+  if (retries > 0) {
+    setTimeout(() => setTranslateCombo(value, retries - 1), 800);
+  }
+}
+
 /** Trigger Google Translate via the hidden widget */
 function triggerTranslation(langCode: string) {
   if (langCode === "en") {
-    // Restore original page
-    const frame = document.querySelector<HTMLIFrameElement>(".goog-te-banner-frame");
-    if (frame) {
-      const restoreBtn = frame.contentDocument?.querySelector<HTMLElement>(
-        ".goog-te-banner .goog-te-button button"
-      );
-      restoreBtn?.click();
+    // 1. Clear cookies so the translation doesn't persist on next load
+    clearGoogTransCookies();
+
+    // 2. Try to restore via the hidden select (set to empty = "Select Language" = original)
+    const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+    if (select) {
+      select.value = "";
+      select.dispatchEvent(new Event("change"));
+
+      // Google Translate doesn't always honour empty-string reset.
+      // If the page is still translated after 300ms, force reload.
+      setTimeout(() => {
+        if (document.documentElement.lang !== "en" || document.querySelector(".translated-ltr, .translated-rtl")) {
+          window.location.reload();
+        }
+      }, 400);
+    } else {
+      // Widget not initialised — cookie clear + reload is the only way
+      window.location.reload();
     }
-    // Also try the cookie-based restore
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + window.location.hostname;
-    window.location.reload();
     return;
   }
 
   document.cookie = `googtrans=/en/${langCode}; path=/;`;
   document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${window.location.hostname}`;
 
-  const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
-  if (select) {
-    select.value = langCode;
-    select.dispatchEvent(new Event("change"));
-  } else {
-    // Widget not ready yet — retry after a brief delay
-    setTimeout(() => {
-      const retrySelect = document.querySelector<HTMLSelectElement>(".goog-te-combo");
-      if (retrySelect) {
-        retrySelect.value = langCode;
-        retrySelect.dispatchEvent(new Event("change"));
-      }
-    }, 1000);
-  }
+  setTranslateCombo(langCode);
 }
 
 /** Load Google Translate script once */
