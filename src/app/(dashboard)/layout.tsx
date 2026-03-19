@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import MobileNav from "@/components/layout/MobileNav";
+import Footer from "@/components/layout/Footer";
 import ShortcutsModal from "@/components/ui/ShortcutsModal";
 import CommandPalette from "@/components/ui/CommandPalette";
 import { useKeyboardShortcuts, type Shortcut } from "@/hooks/useKeyboardShortcuts";
@@ -110,6 +111,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="lg:pl-64">
         <Topbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="p-4 lg:p-8">{children}</main>
+        <Footer />
       </div>
       <ShortcutsModal
         isOpen={shortcutsOpen}

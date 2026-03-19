@@ -22,6 +22,7 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const user = useAuthStore((s) => s.user);
 
@@ -153,11 +154,42 @@ function RegisterForm() {
               </div>
             </div>
 
+            {/* Legal acceptance */}
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 bg-dark-50 text-neon focus:ring-neon/30 accent-emerald-500 shrink-0"
+                />
+                <span className="text-xs text-gray-400 leading-relaxed">
+                  I agree to the{" "}
+                  <Link href="/legal/terms" target="_blank" className="text-neon hover:underline">
+                    Terms of Service
+                  </Link>
+                  ,{" "}
+                  <Link href="/legal/privacy" target="_blank" className="text-neon hover:underline">
+                    Privacy Policy
+                  </Link>
+                  ,{" "}
+                  <Link href="/legal/risk-disclosure" target="_blank" className="text-neon hover:underline">
+                    Risk Disclosure
+                  </Link>
+                  , and{" "}
+                  <Link href="/legal/gdpr" target="_blank" className="text-neon hover:underline">
+                    GDPR Data Processing Agreement
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
+
             {error && (
               <p className="text-sm text-red-400">{error}</p>
             )}
 
-            <Button type="submit" size="lg" className="w-full" loading={loading} disabled={!email || !password || !confirmPassword}>
+            <Button type="submit" size="lg" className="w-full" loading={loading} disabled={!email || !password || !confirmPassword || !acceptedTerms}>
               <UserPlus className="h-4 w-4" />
               Create Account
             </Button>
@@ -169,6 +201,21 @@ function RegisterForm() {
               Sign in
             </Link>
           </p>
+        </div>
+        {/* Legal links */}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-6">
+          <Link href="/legal/terms" target="_blank" className="text-[11px] text-gray-600 hover:text-gray-400 transition-colors">
+            Terms
+          </Link>
+          <Link href="/legal/privacy" target="_blank" className="text-[11px] text-gray-600 hover:text-gray-400 transition-colors">
+            Privacy
+          </Link>
+          <Link href="/legal/risk-disclosure" target="_blank" className="text-[11px] text-gray-600 hover:text-gray-400 transition-colors">
+            Risk Disclosure
+          </Link>
+          <Link href="/legal/gdpr" target="_blank" className="text-[11px] text-gray-600 hover:text-gray-400 transition-colors">
+            GDPR
+          </Link>
         </div>
       </motion.div>
     </div>
