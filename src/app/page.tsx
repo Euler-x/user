@@ -87,10 +87,10 @@ const fallbackTickerItems = [
 
 const footerLinks = [
   { label: "Documentation", href: "/learn" },
-  { label: "Terms of Use", href: "#" },
-  { label: "Risk Disclosure", href: "#" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Acceptable Use Policy", href: "#" },
+  { label: "Terms of Service", href: "/legal/terms" },
+  { label: "Risk Disclosure", href: "/legal/risk-disclosure" },
+  { label: "Privacy Policy", href: "/legal/privacy" },
+  { label: "GDPR Compliance", href: "/legal/gdpr" },
   { label: "Support", href: "/support" },
 ];
 
