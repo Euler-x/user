@@ -1242,102 +1242,241 @@ export default function LandingPage() {
 
       <SectionDivider />
 
-      {/* ─── Ambassador + Learning (side by side) ─── */}
-      <section id="learn" className="py-28 px-6 relative">
+      {/* ─── Ambassador Program (full-width showcase) ─── */}
+      <section className="py-28 px-6 relative">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Ambassador */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <GlassCard hoverColor="#F59E0B" className="h-full">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                    <Award className="h-6 w-6 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Ambassador Program</h3>
-                    <p className="text-xs text-gray-500">Ecosystem Leadership</p>
-                  </div>
+          {/* Section header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4">
+              <Award className="h-3.5 w-3.5 text-amber-400" />
+              <span className="text-xs font-medium text-amber-400 tracking-wide uppercase">Ambassador Program</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              Earn Lifetime Commissions
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-sm leading-relaxed">
+              Refer users to EulerX and earn 15-30% recurring commissions on every subscription &mdash; for life.
+              No upfront costs, no quotas, no lock-in. Free to join.
+            </p>
+          </motion.div>
+
+          {/* Key benefits row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
+          >
+            {[
+              { label: "Commission Rate", value: "15-30%", sub: "Lifetime recurring" },
+              { label: "Scout Earnings", value: "$735/mo", sub: "20 referrals" },
+              { label: "Guide Earnings", value: "$2,450/mo", sub: "50 referrals" },
+              { label: "Master Earnings", value: "$36K+/mo", sub: "500 referrals" },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-dark-200/60 border border-white/[0.04] rounded-xl p-4 text-center"
+              >
+                <p className="text-xl md:text-2xl font-bold text-amber-400">{stat.value}</p>
+                <p className="text-xs text-white font-medium mt-1">{stat.label}</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{stat.sub}</p>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Tier cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10"
+          >
+            {[
+              {
+                tier: "Scout",
+                rate: "15%",
+                req: "Free to join",
+                color: "text-gray-300",
+                border: "border-gray-600/30",
+                bg: "bg-gray-500/5",
+                perks: ["Marketing materials", "Discord access", "Email support"],
+              },
+              {
+                tier: "Guide",
+                rate: "20%",
+                req: "10+ active referrals",
+                color: "text-blue-400",
+                border: "border-blue-500/30",
+                bg: "bg-blue-500/5",
+                perks: ["Ambassador spotlight", "Office hours", "Co-marketing"],
+              },
+              {
+                tier: "Strategist",
+                rate: "25%",
+                req: "50+ active referrals",
+                color: "text-purple-400",
+                border: "border-purple-500/30",
+                bg: "bg-purple-500/5",
+                perks: ["Board-level access", "White-label support", "Equity discussion"],
+              },
+              {
+                tier: "Master",
+                rate: "30%",
+                req: "300+ referrals / invite",
+                color: "text-amber-400",
+                border: "border-amber-500/30",
+                bg: "bg-amber-500/5",
+                perks: ["Territory bonus +5%", "AUM bonus 0.5%", "Revenue share"],
+              },
+            ].map((t) => (
+              <div
+                key={t.tier}
+                className={`${t.bg} border ${t.border} rounded-xl p-5 flex flex-col`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-sm font-bold ${t.color} uppercase tracking-wide`}>{t.tier}</span>
+                  <span className={`text-lg font-bold ${t.color}`}>{t.rate}</span>
                 </div>
-
-                <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                  Recognized contributors who expand the ecosystem responsibly
-                  through structured referral and governance pathways.
-                </p>
-
-                <div className="space-y-3 mb-8">
-                  {[
-                    "Subscription discounts",
-                    "Early strategy previews",
-                    "Governance participation",
-                    "Private execution insights",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-2.5">
-                      <CheckCircle className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-300">{item}</span>
+                <p className="text-[11px] text-gray-500 mb-4">{t.req}</p>
+                <div className="space-y-2 mt-auto">
+                  {t.perks.map((p) => (
+                    <div key={p} className="flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-xs text-gray-400">{p}</span>
                     </div>
                   ))}
                 </div>
+              </div>
+            ))}
+          </motion.div>
 
+          {/* How it works + CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="grid md:grid-cols-2 gap-6"
+          >
+            {/* How it works */}
+            <div className="bg-dark-200/60 border border-white/[0.04] rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-5">How It Works</h3>
+              <div className="space-y-4">
+                {[
+                  { step: "1", title: "Apply for free", desc: "10-minute application, approved within 24-48 hours" },
+                  { step: "2", title: "Get your referral link", desc: "Unique trackable URL — share anywhere" },
+                  { step: "3", title: "Users sign up & subscribe", desc: "We handle onboarding, support & billing" },
+                  { step: "4", title: "Earn monthly commissions", desc: "Paid last business day of each month via crypto or bank" },
+                ].map((s) => (
+                  <div key={s.step} className="flex gap-3">
+                    <div className="h-7 w-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-amber-400">{s.step}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{s.title}</p>
+                      <p className="text-xs text-gray-500">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Why join + CTA */}
+            <div className="bg-dark-200/60 border border-white/[0.04] rounded-xl p-6 flex flex-col">
+              <h3 className="text-lg font-semibold text-white mb-4">Why Join?</h3>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  "No upfront costs",
+                  "Lifetime commissions",
+                  "No quotas or lock-in",
+                  "Passive recurring income",
+                  "Bank, USDC or crypto payouts",
+                  "Real-time tracking dashboard",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-2">
+                    <CheckCircle className="h-3 w-3 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-xs text-gray-300">{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-gray-500 leading-relaxed mb-6">
+                Perfect for crypto traders, content creators, community leaders, and anyone
+                with a network. Earn $183-$36,000+/month depending on your tier and referral count.
+              </p>
+
+              <div className="mt-auto flex flex-col sm:flex-row gap-3">
                 <Link href="/ambassador">
-                  <Button variant="secondary" className="group">
-                    Learn More
+                  <Button variant="secondary" className="group w-full sm:w-auto">
+                    Full Program Details
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-              </GlassCard>
-            </motion.div>
-
-            {/* Learning */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-            >
-              <GlassCard hoverColor="#8B5CF6" className="h-full">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-12 w-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Research Hub</h3>
-                    <p className="text-xs text-gray-500">Market Intelligence</p>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                  Structured educational materials covering market microstructure,
-                  risk-adjusted AI execution, and non-custodial frameworks.
-                </p>
-
-                <div className="space-y-3 mb-8">
-                  {[
-                    "Market microstructure",
-                    "Risk-adjusted AI execution",
-                    "Decentralized liquidity dynamics",
-                    "Non-custodial trading frameworks",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-2.5">
-                      <BookOpen className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-300">{item}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link href="/learn">
-                  <Button variant="secondary" className="group">
-                    Explore Resources
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <a href="mailto:ambassadors@eulerx.io">
+                  <Button variant="ghost" className="w-full sm:w-auto text-amber-400 border-amber-500/20 hover:bg-amber-500/10">
+                    Apply Now
                   </Button>
-                </Link>
-              </GlassCard>
-            </motion.div>
-          </div>
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Learning Hub ─── */}
+      <section id="learn" className="py-28 px-6 relative">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <GlassCard hoverColor="#8B5CF6" className="h-full">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                  <BookOpen className="h-6 w-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Research Hub</h3>
+                  <p className="text-xs text-gray-500">Market Intelligence</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-400 leading-relaxed mb-6">
+                Structured educational materials covering market microstructure,
+                risk-adjusted AI execution, and non-custodial frameworks.
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-3 mb-8">
+                {[
+                  "Market microstructure",
+                  "Risk-adjusted AI execution",
+                  "Decentralized liquidity dynamics",
+                  "Non-custodial trading frameworks",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2.5">
+                    <BookOpen className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
+                    <span className="text-sm text-gray-300">{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/learn">
+                <Button variant="secondary" className="group">
+                  Explore Resources
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </GlassCard>
+          </motion.div>
         </div>
       </section>
 
