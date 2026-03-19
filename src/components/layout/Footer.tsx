@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Shield, FileText, AlertTriangle, Database } from "lucide-react";
 
 const legalLinks = [
@@ -17,15 +16,16 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             {legalLinks.map(({ href, label, icon: Icon }) => (
-              <Link
+              <a
                 key={href}
                 href={href}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-neon transition-colors"
               >
                 <Icon className="h-3 w-3" />
                 {label}
-              </Link>
+              </a>
             ))}
           </div>
 
