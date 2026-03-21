@@ -35,6 +35,7 @@ export interface User {
   email_verified: boolean;
   has_wallet: boolean;
   telegram_configured: boolean;
+  bybit_configured: boolean;
   created_at: string;
 }
 
