@@ -292,7 +292,7 @@ function SignalsPageInner() {
     setDetailLoading(true);
     setSelectedSignal(null);
     try {
-      const detail = await getSignal(id);
+      const detail = await getSignal(id, exchange);
       setSelectedSignal(detail);
     } finally {
       setDetailLoading(false);
@@ -310,7 +310,7 @@ function SignalsPageInner() {
     if (tab === "live") {
       fetchLive({ exchange }).then((data) => data && setLiveSignals(data));
     } else {
-      fetchSignals({ page, page_size: pageSize, exchange });
+      fetchSignals({ page, page_size: pageSize, exchange } as Record<string, unknown>);
     }
   }, [tab, page, pageSize, exchange, fetchSignals, fetchLive, subChecked, hasActiveSub]);
 

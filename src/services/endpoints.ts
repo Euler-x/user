@@ -29,12 +29,20 @@ export const ENDPOINTS = {
     PAUSE: (id: string) => `${API}/strategies/${id}/pause`,
   },
 
-  // Signals
+  // Signals (HyperLiquid)
   SIGNALS: {
     LIST: `${API}/signals`,
     LIVE: `${API}/signals/live`,
     HISTORY: `${API}/signals/history`,
     GET: (id: string) => `${API}/signals/${id}`,
+  },
+
+  // Bybit Signals
+  BYBIT_SIGNALS: {
+    LIST: `${API}/bybit-signals`,
+    LIVE: `${API}/bybit-signals/live`,
+    HISTORY: `${API}/bybit-signals/history`,
+    GET: (id: string) => `${API}/bybit-signals/${id}`,
   },
 
   // Executions
