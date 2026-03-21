@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Mail, CheckCircle, Send, Trash2, Bell, Wallet, ArrowRight, Shield, ExternalLink, Eye, EyeOff, AlertTriangle, Lock, ChevronDown, ChevronUp, Activity, Ban, RefreshCw, Pencil } from "lucide-react";
+import { Mail, CheckCircle, Send, Trash2, Bell, Wallet, ArrowRight, Shield, ExternalLink, Eye, EyeOff, AlertTriangle, Lock, ChevronDown, ChevronUp, Activity, Ban, RefreshCw, Pencil, BarChart3 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Card, { CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -17,6 +17,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 
 const TABS = [
   { key: "wallet", label: "Wallet", icon: Wallet },
+  { key: "bybit", label: "Bybit", icon: BarChart3 },
   { key: "email", label: "Email", icon: Mail },
   { key: "telegram", label: "Telegram", icon: Send },
   { key: "notifications", label: "Notifications", icon: Bell },
@@ -39,6 +40,13 @@ export default function SettingsPage() {
   const [showGuide, setShowGuide] = useState(false);
   const [showUpdateWallet, setShowUpdateWallet] = useState(false);
   const { balance: walletBalance, loading: balanceLoading, fetchBalance } = useWalletBalance();
+
+  // Bybit
+  const [bybitApiKey, setBybitApiKey] = useState("");
+  const [bybitApiSecret, setBybitApiSecret] = useState("");
+  const [bybitTestnet, setBybitTestnet] = useState(false);
+  const [showBybitSecret, setShowBybitSecret] = useState(false);
+  const [bybitLoading, setBybitLoading] = useState(false);
 
   // Telegram
   const [botToken, setBotToken] = useState("");
@@ -80,6 +88,37 @@ export default function SettingsPage() {
       // Error toasted by interceptor
     } finally {
       setWalletLoading(false);
+    }
+  };
+
+  const handleConnectBybit = async () => {
+    if (!bybitApiKey || !bybitApiSecret) return;
+    setBybitLoading(true);
+    try {
+      const { data } = await api.post(ENDPOINTS.AUTH.BYBIT_CONNECT, {
+        api_key: bybitApiKey,
+        api_secret: bybitApiSecret,
+        testnet: bybitTestnet,
+      });
+      toast.success(data.message || "Bybit connected!");
+      setBybitApiKey("");
+      setBybitApiSecret("");
+      await fetchMe();
+    } catch {
+      // Error toasted by interceptor
+    } finally {
+      setBybitLoading(false);
+    }
+  };
+
+  const handleDisconnectBybit = async () => {
+    setBybitLoading(true);
+    try {
+      await api.post(ENDPOINTS.AUTH.BYBIT_DISCONNECT);
+      toast.success("Bybit disconnected");
+      await fetchMe();
+    } finally {
+      setBybitLoading(false);
     }
   };
 
@@ -446,6 +485,128 @@ export default function SettingsPage() {
                   >
                     <Shield className="h-4 w-4" />
                     Connect Hyperliquid Wallet
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Bybit Tab */}
+          {activeTab === "bybit" && (
+            <Card>
+              <CardTitle>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-orange-400" /> Bybit Exchange
+                </div>
+              </CardTitle>
+              {user?.bybit_configured ? (
+                <div className="mt-4 space-y-5">
+                  <div className="rounded-lg border border-white/[0.06] bg-dark-300/50 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-neon" />
+                        <span className="text-sm font-medium text-white">Bybit Account Connected</span>
+                        <Badge variant="success">Active</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Shield className="h-3 w-3 text-orange-400/60" />
+                      <span>API keys are encrypted with AES-256 and stored securely</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Lock className="h-3 w-3 text-orange-400/60" />
+                      <span>Only trade permissions are required — no withdrawal access</span>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="danger" onClick={handleDisconnectBybit} loading={bybitLoading}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Disconnect Bybit
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-5">
+                  <p className="text-sm text-gray-400">
+                    Connect your Bybit account to enable automated trading on Bybit perpetual futures.
+                    EulerX will use your API key to execute AI-generated signals.
+                  </p>
+
+                  <div className="bg-orange-500/5 border border-orange-500/10 rounded-lg p-4 space-y-3">
+                    <p className="text-sm font-medium text-orange-400">How to get your Bybit API key</p>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold shrink-0">1</div>
+                        <p className="text-xs text-gray-400">
+                          Go to <a href="https://www.bybit.com/app/user/api-management" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline inline-flex items-center gap-0.5">Bybit API Management <ExternalLink className="h-2.5 w-2.5" /></a>
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold shrink-0">2</div>
+                        <p className="text-xs text-gray-400">Click &quot;Create New Key&quot; → select <span className="text-gray-300 font-medium">System-generated API Keys</span></p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold shrink-0">3</div>
+                        <p className="text-xs text-gray-400">Enable <span className="text-gray-300 font-medium">Contract Trading</span> permissions (read + write). Do NOT enable withdrawal.</p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold shrink-0">4</div>
+                        <p className="text-xs text-gray-400">Copy both the <span className="text-gray-300 font-medium">API Key</span> and <span className="text-gray-300 font-medium">Secret Key</span> and paste below</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Input
+                      value={bybitApiKey}
+                      onChange={(e) => setBybitApiKey(e.target.value.trim())}
+                      placeholder="Your Bybit API key"
+                      label="API Key"
+                    />
+                    <div className="relative">
+                      <Input
+                        value={bybitApiSecret}
+                        onChange={(e) => setBybitApiSecret(e.target.value.trim())}
+                        placeholder="Your Bybit API secret"
+                        label="API Secret"
+                        type={showBybitSecret ? "text" : "password"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowBybitSecret(!showBybitSecret)}
+                        className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-300 transition-colors"
+                      >
+                        {showBybitSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+
+                    {/* Testnet toggle */}
+                    <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-dark-300/30 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-white">Testnet Mode</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Use Bybit testnet for paper trading (no real funds)</p>
+                      </div>
+                      <button
+                        onClick={() => setBybitTestnet(!bybitTestnet)}
+                        className={`h-5 w-10 rounded-full transition-colors ${bybitTestnet ? "bg-orange-400" : "bg-dark-50"}`}
+                      >
+                        <div className={`h-4 w-4 rounded-full bg-white transition-transform ${bybitTestnet ? "translate-x-5" : "translate-x-0.5"}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/10 rounded-lg p-3">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>Your API keys are encrypted with AES-256 before storage. Only enable &quot;Contract Trading&quot; permissions — never enable withdrawal access.</span>
+                  </div>
+
+                  <Button
+                    className="group"
+                    onClick={handleConnectBybit}
+                    loading={bybitLoading}
+                    disabled={!bybitApiKey || !bybitApiSecret}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Connect Bybit {bybitTestnet ? "(Testnet)" : ""}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>

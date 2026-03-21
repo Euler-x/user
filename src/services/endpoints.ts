@@ -16,6 +16,8 @@ export const ENDPOINTS = {
     EMAIL_VERIFY: `${API}/auth/email/verify`,
     FORGOT_PASSWORD: `${API}/auth/forgot-password`,
     RESET_PASSWORD: `${API}/auth/reset-password`,
+    BYBIT_CONNECT: `${API}/auth/bybit/connect`,
+    BYBIT_DISCONNECT: `${API}/auth/bybit/disconnect`,
   },
 
   // Strategies
