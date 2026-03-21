@@ -107,6 +107,8 @@ export interface StrategyUpdate {
 }
 
 // ── Signals ────────────────────────────────────────────────
+export type Exchange = "hyperliquid" | "bybit";
+
 export interface Signal {
   id: string;
   strategy_id: string | null;
@@ -119,6 +121,7 @@ export interface Signal {
   risk_reward_ratio: number | null;
   indicators: Record<string, unknown> | null;
   status: SignalStatus;
+  exchange: Exchange;
   expires_at: string | null;
   created_at: string;
 }

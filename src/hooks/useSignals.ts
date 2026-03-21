@@ -22,10 +22,10 @@ export default function useSignals() {
     }
   }, []);
 
-  const fetchLive = useCallback(async () => {
+  const fetchLive = useCallback(async (params?: Record<string, unknown>) => {
     setLoading(true);
     try {
-      const { data } = await api.get<Signal[]>(ENDPOINTS.SIGNALS.LIVE);
+      const { data } = await api.get<Signal[]>(ENDPOINTS.SIGNALS.LIVE, { params });
       return data;
     } finally {
       setLoading(false);

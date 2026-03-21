@@ -19,7 +19,7 @@ import useSignals from "@/hooks/useSignals";
 import useBilling from "@/hooks/useBilling";
 import usePagination from "@/hooks/usePagination";
 import { formatCurrency, formatDateTime, formatNumber, capitalize } from "@/lib/utils";
-import type { Signal, SignalDetail } from "@/types";
+import type { Signal, SignalDetail, Exchange } from "@/types";
 
 const directionIcons = {
   buy: <TrendingUp className="h-4 w-4 text-neon" />,
@@ -27,7 +27,15 @@ const directionIcons = {
   hold: <Minus className="h-4 w-4 text-yellow-400" />,
 };
 
-const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
+const EXPLORER_URLS: Record<string, string> = {
+  hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
+  bybit: "https://www.bybit.com/trade/usdt/",
+};
+
+const EXCHANGE_LABELS: Record<string, string> = {
+  hyperliquid: "HyperLiquid",
+  bybit: "Bybit",
+};
 
 /* ──────────────────────────────────────────────────────────
    SIGNAL DETAIL MODAL
@@ -229,7 +237,7 @@ function SignalDetailModal({
                                 )}
                                 {exec.tx_hash && (
                                   <a
-                                    href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
+                                    href={`${EXPLORER_URLS[signal.exchange] || EXPLORER_URLS.hyperliquid}${exec.tx_hash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-neon/70 hover:text-neon transition-colors"
@@ -264,6 +272,7 @@ export default function SignalsPage() {
   const { page, pageSize, setPage } = usePagination();
   const [liveSignals, setLiveSignals] = useState<Signal[]>([]);
   const [tab, setTab] = useState<"all" | "live">("live");
+  const [exchange, setExchange] = useState<Exchange>("hyperliquid");
   const [subChecked, setSubChecked] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<SignalDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -288,11 +297,11 @@ export default function SignalsPage() {
   useEffect(() => {
     if (!subChecked || !hasActiveSub) return;
     if (tab === "live") {
-      fetchLive().then((data) => data && setLiveSignals(data));
+      fetchLive({ exchange }).then((data) => data && setLiveSignals(data));
     } else {
-      fetchSignals({ page, page_size: pageSize });
+      fetchSignals({ page, page_size: pageSize, exchange });
     }
-  }, [tab, page, pageSize, fetchSignals, fetchLive, subChecked, hasActiveSub]);
+  }, [tab, page, pageSize, exchange, fetchSignals, fetchLive, subChecked, hasActiveSub]);
 
   const displaySignals = tab === "live" ? liveSignals : signals;
 
@@ -328,12 +337,12 @@ export default function SignalsPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Signals</h1>
             <p className="text-sm text-gray-400 mt-1">AI-generated trading signals</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant={tab === "live" ? "primary" : "secondary"} onClick={() => setTab("live")}>
               <Zap className="h-3 w-3" /> Live
             </Button>
@@ -341,6 +350,23 @@ export default function SignalsPage() {
               All Signals
             </Button>
           </div>
+        </div>
+
+        {/* Exchange tabs */}
+        <div className="flex items-center gap-1 p-1 bg-dark-200/60 rounded-xl border border-white/5 w-fit">
+          {(["hyperliquid", "bybit"] as Exchange[]).map((ex) => (
+            <button
+              key={ex}
+              onClick={() => { setExchange(ex); setPage(1); }}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                exchange === ex
+                  ? "bg-neon/10 text-neon border border-neon/20"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              {EXCHANGE_LABELS[ex]}
+            </button>
+          ))}
         </div>
 
         {displaySignals.length === 0 ? (
@@ -401,7 +427,16 @@ export default function SignalsPage() {
                       <Badge variant="neon">{formatNumber(signal.risk_reward_ratio, 1)}</Badge>
                     </div>
                   )}
-                  <p className="text-xs text-gray-600 mt-2">{formatDateTime(signal.created_at)}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-gray-600">{formatDateTime(signal.created_at)}</p>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                      signal.exchange === "bybit"
+                        ? "bg-orange-500/10 text-orange-400"
+                        : "bg-emerald-500/10 text-emerald-400"
+                    }`}>
+                      {EXCHANGE_LABELS[signal.exchange] || signal.exchange}
+                    </span>
+                  </div>
                 </GlowCard>
               </motion.div>
             ))}
