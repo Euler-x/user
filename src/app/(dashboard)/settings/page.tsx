@@ -17,7 +17,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 
 const TABS = [
   { key: "wallet", label: "Wallet", icon: Wallet },
-  { key: "bybit", label: "Bybit", icon: BarChart3 },
+  { key: "bybit", label: "Bybit", icon: BarChart3, iconUrl: "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp" },
   { key: "email", label: "Email", icon: Mail },
   { key: "telegram", label: "Telegram", icon: Send },
   { key: "notifications", label: "Notifications", icon: Bell },
@@ -198,7 +198,11 @@ export default function SettingsPage() {
                   : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.03]"
               )}
             >
-              <tab.icon className="h-4 w-4" />
+              {"iconUrl" in tab && tab.iconUrl ? (
+                <img src={tab.iconUrl} alt="" className="h-4 w-4 rounded-sm" />
+              ) : (
+                <tab.icon className="h-4 w-4" />
+              )}
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
@@ -211,7 +215,7 @@ export default function SettingsPage() {
             <Card>
               <CardTitle>
                 <div className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-neon" /> Hyperliquid Wallet
+                  <img src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp" alt="HyperLiquid" className="h-5 w-5 rounded-sm" /> Hyperliquid Wallet
                 </div>
               </CardTitle>
               {user?.has_wallet ? (
@@ -497,7 +501,7 @@ export default function SettingsPage() {
             <Card>
               <CardTitle>
                 <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-orange-400" /> Bybit Exchange
+                  <img src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp" alt="Bybit" className="h-5 w-5 rounded-sm" /> Bybit Exchange
                 </div>
               </CardTitle>
               {user?.bybit_configured ? (

@@ -28,14 +28,19 @@ const directionIcons = {
   hold: <Minus className="h-4 w-4 text-yellow-400" />,
 };
 
+import ExchangeIcon, { EXCHANGE_LABELS } from "@/components/ui/ExchangeIcon";
+
 const EXPLORER_URLS: Record<string, string> = {
   hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
   bybit: "https://www.bybit.com/trade/usdt/",
 };
 
-const EXCHANGE_LABELS: Record<string, string> = {
-  hyperliquid: "HyperLiquid",
-  bybit: "Bybit",
+const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
+const BYBIT_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+
+const EXCHANGE_LOGOS: Record<string, string> = {
+  hyperliquid: HL_LOGO,
+  bybit: BYBIT_LOGO,
 };
 
 /* ──────────────────────────────────────────────────────────
@@ -350,8 +355,13 @@ function SignalsPageInner() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">{EXCHANGE_LABELS[exchange]} Signals</h1>
-            <p className="text-sm text-gray-400 mt-1">AI-generated trading signals on {EXCHANGE_LABELS[exchange]}</p>
+            <div className="flex items-center gap-2.5">
+              <img src={EXCHANGE_LOGOS[exchange]} alt="" className="h-7 w-7 rounded" />
+              <div>
+                <h1 className="text-2xl font-bold text-white">{EXCHANGE_LABELS[exchange]} Signals</h1>
+                <p className="text-sm text-gray-400 mt-0.5">AI-generated trading signals</p>
+              </div>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant={tab === "live" ? "primary" : "secondary"} onClick={() => setTab("live")}>
@@ -369,12 +379,13 @@ function SignalsPageInner() {
             <button
               key={ex}
               onClick={() => { setExchange(ex); setPage(1); }}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 exchange === ex
                   ? "bg-neon/10 text-neon border border-neon/20"
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
+              <img src={EXCHANGE_LOGOS[ex]} alt="" className="h-4 w-4 rounded-sm" />
               {EXCHANGE_LABELS[ex]}
             </button>
           ))}
@@ -440,13 +451,10 @@ function SignalsPageInner() {
                   )}
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-gray-600">{formatDateTime(signal.created_at)}</p>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                      signal.exchange === "bybit"
-                        ? "bg-orange-500/10 text-orange-400"
-                        : "bg-emerald-500/10 text-emerald-400"
-                    }`}>
-                      {EXCHANGE_LABELS[signal.exchange] || signal.exchange}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <img src={EXCHANGE_LOGOS[signal.exchange]} alt="" className="h-3.5 w-3.5 rounded-sm" />
+                      <span className="text-[10px] text-gray-500">{EXCHANGE_LABELS[signal.exchange]}</span>
+                    </div>
                   </div>
                 </GlowCard>
               </motion.div>

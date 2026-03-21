@@ -34,6 +34,7 @@ interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  iconUrl?: string;
 }
 
 interface NavGroup {
@@ -41,14 +42,17 @@ interface NavGroup {
   items: NavItem[];
 }
 
+const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
+const BYBIT_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+
 const navGroups: NavGroup[] = [
   {
     title: "Trading",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Strategies", href: "/strategies", icon: Brain },
-      { label: "HL Signals", href: "/signals?exchange=hyperliquid", icon: Zap },
-      { label: "Bybit Signals", href: "/signals?exchange=bybit", icon: Zap },
+      { label: "HL Signals", href: "/signals?exchange=hyperliquid", icon: Zap, iconUrl: HL_LOGO },
+      { label: "Bybit Signals", href: "/signals?exchange=bybit", icon: Zap, iconUrl: BYBIT_LOGO },
       { label: "Executions", href: "/executions", icon: Activity },
     ],
   },
@@ -157,12 +161,20 @@ export default function Sidebar() {
                       {isActive && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-neon shadow-neon-sm" />
                       )}
-                      <item.icon
-                        className={cn(
-                          "h-4 w-4 flex-shrink-0 transition-colors",
-                          isActive ? "text-neon" : "text-gray-500 group-hover/item:text-gray-300"
-                        )}
-                      />
+                      {item.iconUrl ? (
+                        <img
+                          src={item.iconUrl}
+                          alt=""
+                          className="h-4 w-4 flex-shrink-0 rounded-sm"
+                        />
+                      ) : (
+                        <item.icon
+                          className={cn(
+                            "h-4 w-4 flex-shrink-0 transition-colors",
+                            isActive ? "text-neon" : "text-gray-500 group-hover/item:text-gray-300"
+                          )}
+                        />
+                      )}
                       {item.label}
                     </Link>
                   );
