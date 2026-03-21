@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -47,7 +47,8 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Strategies", href: "/strategies", icon: Brain },
-      { label: "Signals", href: "/signals", icon: Zap },
+      { label: "HL Signals", href: "/signals?exchange=hyperliquid", icon: Zap },
+      { label: "Bybit Signals", href: "/signals?exchange=bybit", icon: Zap },
       { label: "Executions", href: "/executions", icon: Activity },
     ],
   },
@@ -73,6 +74,7 @@ const navGroups: NavGroup[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
   const { subscription, fetchSubscription } = useBilling();
@@ -136,7 +138,11 @@ export default function Sidebar() {
               </p>
               <div className="space-y-0.5">
                 {group.items.map((item) => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  const fullPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+                  const hrefPath = item.href.split("?")[0];
+                  const isActive = item.href.includes("?")
+                    ? fullPath === item.href
+                    : pathname === hrefPath || pathname.startsWith(hrefPath + "/");
                   return (
                     <Link
                       key={item.href}

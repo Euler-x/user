@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, TrendingUp, TrendingDown, Minus, CreditCard,
@@ -266,13 +267,23 @@ function SignalDetailModal({
    SIGNALS PAGE
    ────────────────────────────────────────────────────────── */
 
-export default function SignalsPage() {
+function SignalsPageInner() {
+  const searchParams = useSearchParams();
+  const exchangeParam = searchParams.get("exchange");
+  const initialExchange: Exchange = exchangeParam === "bybit" ? "bybit" : "hyperliquid";
+
   const { signals, totalPages, loading, fetchSignals, fetchLive, getSignal } = useSignals();
   const { subscription, loading: billingLoading, fetchSubscription } = useBilling();
   const { page, pageSize, setPage } = usePagination();
   const [liveSignals, setLiveSignals] = useState<Signal[]>([]);
   const [tab, setTab] = useState<"all" | "live">("live");
-  const [exchange, setExchange] = useState<Exchange>("hyperliquid");
+  const [exchange, setExchange] = useState<Exchange>(initialExchange);
+
+  // Sync exchange state when URL param changes (sidebar nav clicks)
+  useEffect(() => {
+    setExchange(initialExchange);
+  }, [initialExchange]);
+
   const [subChecked, setSubChecked] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<SignalDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -339,8 +350,8 @@ export default function SignalsPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Signals</h1>
-            <p className="text-sm text-gray-400 mt-1">AI-generated trading signals</p>
+            <h1 className="text-2xl font-bold text-white">{EXCHANGE_LABELS[exchange]} Signals</h1>
+            <p className="text-sm text-gray-400 mt-1">AI-generated trading signals on {EXCHANGE_LABELS[exchange]}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant={tab === "live" ? "primary" : "secondary"} onClick={() => setTab("live")}>
@@ -452,5 +463,13 @@ export default function SignalsPage() {
         onClose={() => { setSelectedSignal(null); setDetailLoading(false); }}
       />
     </PageTransition>
+  );
+}
+
+export default function SignalsPage() {
+  return (
+    <Suspense>
+      <SignalsPageInner />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -48,7 +48,8 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Strategies", href: "/strategies", icon: Brain },
-      { label: "Signals", href: "/signals", icon: Zap },
+      { label: "HL Signals", href: "/signals?exchange=hyperliquid", icon: Zap },
+      { label: "Bybit Signals", href: "/signals?exchange=bybit", icon: Zap },
       { label: "Executions", href: "/executions", icon: Activity },
     ],
   },
@@ -79,6 +80,7 @@ interface MobileNavProps {
 
 export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
   const { subscription, fetchSubscription } = useBilling();
@@ -162,7 +164,11 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     </p>
                     <div className="space-y-0.5">
                       {group.items.map((item) => {
-                        const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                        const fullPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+                        const hrefPath = item.href.split("?")[0];
+                        const isActive = item.href.includes("?")
+                          ? fullPath === item.href
+                          : pathname === hrefPath || pathname.startsWith(hrefPath + "/");
                         return (
                           <Link
                             key={item.href}
