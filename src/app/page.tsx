@@ -19,7 +19,7 @@ import useMarketData from "@/hooks/useMarketData";
 const architectureLayers = [
   { icon: Wallet, title: "Wallet Authorization Layer", desc: "Secure wallet-signed authentication for every execution command.", color: "#39FF14" },
   { icon: Brain, title: "AI Execution Engine", desc: "Multi-model probabilistic analysis powering every trading decision.", color: "#06B6D4" },
-  { icon: TrendingUp, title: "Hyperliquid Trading Rail", desc: "Direct interface with decentralized liquidity venues.", color: "#8B5CF6" },
+  { icon: TrendingUp, title: "Multi-Exchange Trading Rails", desc: "Execute across HyperLiquid and Bybit from a single interface.", color: "#8B5CF6" },
   { icon: Eye, title: "On-Chain Verification", desc: "Every trade auditable via blockchain transaction hashes.", color: "#F59E0B" },
   { icon: BarChart3, title: "Performance Analytics", desc: "Real-time PnL, drawdown, and exposure tracking.", color: "#39FF14" },
 ];
@@ -575,9 +575,9 @@ export default function LandingPage() {
               transition={{ delay: 0.2, duration: 0.7 }}
               className="text-lg md:text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed"
             >
-              Non-custodial automated trading infrastructure for capital-aligned participants.
-              Deploy algorithmic execution strategies directly from your wallet &mdash; fully
-              verifiable on-chain.
+              Multi-exchange AI trading infrastructure for capital-aligned participants.
+              Deploy algorithmic execution strategies across HyperLiquid and Bybit &mdash; non-custodial,
+              fully verifiable.
             </motion.p>
 
             <motion.div
@@ -588,6 +588,7 @@ export default function LandingPage() {
             >
               {[
                 { label: "Non-Custodial", color: "#39FF14" },
+                { label: "Multi-Exchange", color: "#F59E0B" },
                 { label: "On-Chain Verified", color: "#06B6D4" },
                 { label: "AI Execution", color: "#8B5CF6" },
               ].map((badge) => (
@@ -741,9 +742,9 @@ export default function LandingPage() {
               <GlassCard hoverColor="#06B6D4">
                 <div className="space-y-6">
                   {[
-                    { icon: Cpu, label: "AI-Driven Execution", desc: "Multi-model analysis on decentralized trading rails" },
-                    { icon: Eye, label: "Real-Time Verification", desc: "Every trade auditable via blockchain records" },
-                    { icon: Shield, label: "Capital Sovereignty", desc: "Funds never leave user-controlled wallets" },
+                    { icon: Cpu, label: "AI-Driven Execution", desc: "Multi-model analysis across HyperLiquid and Bybit" },
+                    { icon: Globe, label: "Multi-Exchange Support", desc: "Trade on HyperLiquid DEX and Bybit CEX from one platform" },
+                    { icon: Shield, label: "Capital Sovereignty", desc: "Non-custodial on HyperLiquid, API-only on Bybit" },
                   ].map((item, i) => (
                     <motion.div
                       key={item.label}
@@ -863,6 +864,114 @@ export default function LandingPage() {
       </section>
 
       <SectionDivider color="purple" />
+
+      {/* ─── Supported Exchanges ─── */}
+      <section className="py-20 px-6 relative">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <SectionBadge color="#F59E0B">Exchanges</SectionBadge>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+              Trade Across <span className="text-amber-400">Multiple Exchanges</span>
+            </h2>
+            <p className="text-gray-400 max-w-xl mx-auto">
+              One platform, multiple venues. Connect your preferred exchange and let AI execute profitable strategies for you.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* HyperLiquid */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-dark-200/60 border border-emerald-500/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <img
+                  src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp"
+                  alt="HyperLiquid"
+                  className="h-12 w-12 rounded-xl"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-white">HyperLiquid</h3>
+                  <p className="text-xs text-emerald-400">Decentralized Perpetuals</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                Fully non-custodial trading on the highest-volume decentralized perpetuals exchange.
+                Your funds stay in your own wallet at all times.
+              </p>
+              <div className="space-y-2">
+                {[
+                  "Non-custodial — your keys, your funds",
+                  "Agent wallet pattern — trade-only, no withdrawals",
+                  "On-chain verification for every trade",
+                  "Native TP/SL trigger orders",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-300">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Bybit */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-dark-200/60 border border-orange-500/10 rounded-2xl p-6 hover:border-orange-500/30 transition-colors"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <img
+                  src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp"
+                  alt="Bybit"
+                  className="h-12 w-12 rounded-xl"
+                />
+                <div>
+                  <h3 className="text-xl font-bold text-white">Bybit</h3>
+                  <p className="text-xs text-orange-400">Centralized Perpetuals</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                Trade on one of the world&apos;s largest crypto exchanges with deep liquidity
+                and institutional-grade infrastructure. API key access only — no withdrawal permissions.
+              </p>
+              <div className="space-y-2">
+                {[
+                  "API key connection — trade-only permissions",
+                  "Deep liquidity across 300+ USDT pairs",
+                  "Testnet support for paper trading",
+                  "Inline TP/SL on every order",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-orange-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-300">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="text-center text-gray-600 mt-8 text-xs"
+          >
+            More exchanges coming soon &mdash; Binance, OKX, and dYdX on the roadmap
+          </motion.p>
+        </div>
+      </section>
+
+      <SectionDivider color="amber" />
 
       {/* ─── ATE Engine ─── */}
       <section id="ate" className="py-28 px-6 relative overflow-hidden">
@@ -1535,8 +1644,8 @@ export default function LandingPage() {
               <span className="text-gradient-multi">AI Execution</span>
             </h2>
             <p className="text-lg text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto">
-              Access non-custodial automated trading infrastructure designed for transparency,
-              discipline, and structured market participation.
+              Access multi-exchange AI trading infrastructure across HyperLiquid and Bybit &mdash;
+              designed for transparency, discipline, and structured market participation.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/register">
@@ -1567,7 +1676,7 @@ export default function LandingPage() {
                 <span className="text-xl font-bold text-gradient">EulerX</span>
               </div>
               <p className="text-xs text-gray-600 max-w-sm leading-relaxed">
-                Non-custodial AI execution infrastructure within decentralized trading environments.
+                Multi-exchange AI execution infrastructure across HyperLiquid and Bybit.
                 All trading involves risk. Past performance is not indicative of future results.
               </p>
             </div>
