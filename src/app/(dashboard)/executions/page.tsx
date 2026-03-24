@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import Table from "@/components/ui/Table";
@@ -9,14 +9,38 @@ import Pagination from "@/components/ui/Pagination";
 import { PageSpinner } from "@/components/ui/Spinner";
 import Tooltip from "@/components/ui/Tooltip";
 import EmptyState from "@/components/ui/EmptyState";
+import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
 import useExecutions from "@/hooks/useExecutions";
 import usePagination from "@/hooks/usePagination";
 import { formatCurrency, formatDateTime, formatPnl } from "@/lib/utils";
-import type { Execution } from "@/types";
+import type { Execution, Exchange } from "@/types";
 
-const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
+const EXPLORER_TX_URL: Record<string, string> = {
+  hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
+  bybit: "https://www.bybit.com/trade/usdt/",
+};
+
+const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
+const BB_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+
+function getExchange(e: Execution): string {
+  return (e as Record<string, unknown>).exchange as string || "hyperliquid";
+}
 
 const columns = [
+  {
+    key: "exchange",
+    header: "Exchange",
+    render: (e: Execution) => {
+      const ex = getExchange(e);
+      return (
+        <div className="flex items-center gap-1.5">
+          <img src={ex === "bybit" ? BB_LOGO : HL_LOGO} alt={ex} className="h-3.5 w-3.5 rounded-sm" />
+          <span className="text-[10px] font-medium text-gray-400 uppercase">{ex === "bybit" ? "Bybit" : "HL"}</span>
+        </div>
+      );
+    },
+  },
   {
     key: "direction",
     header: "Direction",
@@ -43,7 +67,7 @@ const columns = [
     key: "exit_price",
     header: "Exit",
     headerTooltip: "Price at which the position was closed",
-    render: (e: Execution) => e.exit_price ? formatCurrency(e.exit_price) : "—",
+    render: (e: Execution) => e.exit_price ? formatCurrency(e.exit_price) : "\u2014",
   },
   {
     key: "quantity",
@@ -100,10 +124,11 @@ const columns = [
   {
     key: "explorer",
     header: "",
-    render: (e: Execution) =>
-      e.tx_hash ? (
+    render: (e: Execution) => {
+      const ex = getExchange(e);
+      return e.tx_hash ? (
         <a
-          href={`${EXPLORER_TX_URL}${e.tx_hash}`}
+          href={`${EXPLORER_TX_URL[ex] || EXPLORER_TX_URL.hyperliquid}${e.tx_hash}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(ev) => ev.stopPropagation()}
@@ -113,14 +138,16 @@ const columns = [
           <span className="hidden sm:inline">Explorer</span>
         </a>
       ) : (
-        <span className="text-gray-700 text-xs">—</span>
-      ),
+        <span className="text-gray-700 text-xs">\u2014</span>
+      );
+    },
   },
 ];
 
 export default function ExecutionsPage() {
   const { executions, totalPages, loading, fetchExecutions } = useExecutions();
   const { page, pageSize, setPage } = usePagination();
+  const [exchangeFilter, setExchangeFilter] = useState<Exchange | "all">("all");
 
   useEffect(() => {
     fetchExecutions({ page, page_size: pageSize });
@@ -128,26 +155,36 @@ export default function ExecutionsPage() {
 
   if (loading && executions.length === 0) return <PageSpinner />;
 
+  const filtered = exchangeFilter === "all"
+    ? executions
+    : executions.filter((e) => getExchange(e) === exchangeFilter);
+
   return (
     <PageTransition>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Executions</h1>
-          <p className="text-sm text-gray-400 mt-1">Your trade execution history</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Executions</h1>
+            <p className="text-sm text-gray-400 mt-1">Your trade execution history</p>
+          </div>
+          <ExchangeSwitcher active={exchangeFilter} onChange={setExchangeFilter} />
         </div>
 
-        {executions.length === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState
             icon={Activity}
             title="No Executions Yet"
-            description="Once your strategies generate trades, they'll appear here with full details."
+            description={exchangeFilter === "all"
+              ? "Once your strategies generate trades, they'll appear here with full details."
+              : `No executions on ${exchangeFilter === "bybit" ? "Bybit" : "HyperLiquid"} yet.`
+            }
             actionLabel="View Strategies"
             actionHref="/strategies"
           />
         ) : (
           <Table
             columns={columns}
-            data={executions}
+            data={filtered}
             emptyMessage="No executions yet"
           />
         )}

@@ -18,7 +18,9 @@ import GlowCard from "@/components/ui/GlowCard";
 import { PageSpinner } from "@/components/ui/Spinner";
 import EquityCurveChart from "@/components/charts/EquityCurveChart";
 import useAnalytics from "@/hooks/useAnalytics";
+import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
 import { cn, formatCurrency } from "@/lib/utils";
+import type { Exchange } from "@/types";
 
 const PERIODS = [
   { label: "30 Days", value: 30 },
@@ -104,6 +106,7 @@ export default function AnalyticsPage() {
             </p>
           </div>
 
+          <div className="flex items-center gap-3">
           {/* Period Selector */}
           <div className="flex gap-1 bg-dark-200/80 border border-white/5 rounded-lg p-1">
             {PERIODS.map((period) => (
@@ -120,6 +123,7 @@ export default function AnalyticsPage() {
                 {period.label}
               </button>
             ))}
+          </div>
           </div>
         </div>
 

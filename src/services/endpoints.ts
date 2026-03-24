@@ -121,6 +121,7 @@ export const ENDPOINTS = {
   // Wallet
   WALLET: {
     BALANCE: `${API}/wallet/balance`,
+    BYBIT_BALANCE: `${API}/wallet/bybit-balance`,
   },
 
   // AI Chat

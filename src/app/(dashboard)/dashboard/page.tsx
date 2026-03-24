@@ -47,9 +47,12 @@ import useExecutions from "@/hooks/useExecutions";
 import useAnalytics from "@/hooks/useAnalytics";
 import useMarketData from "@/hooks/useMarketData";
 import useWalletBalance from "@/hooks/useWalletBalance";
+import useBybitBalance from "@/hooks/useBybitBalance";
 import useBilling from "@/hooks/useBilling";
 import { useAuthStore } from "@/stores/authStore";
+import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
 import { formatCurrency, formatNumber, formatPnl } from "@/lib/utils";
+import type { Exchange } from "@/types";
 
 // ── Palette (on-brand) ──────────────────────────────────────────────
 
@@ -59,7 +62,10 @@ const PURPLE = "#8B5CF6";
 const AMBER = "#F59E0B";
 const RED = "#F87171";
 
-const EXPLORER_TX_URL = "https://app.hyperliquid.xyz/explorer/tx/";
+const EXPLORER_TX_URL: Record<string, string> = {
+  hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
+  bybit: "https://www.bybit.com/trade/usdt/",
+};
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -227,12 +233,20 @@ export default function DashboardPage() {
     error: balanceError,
     fetchBalance,
   } = useWalletBalance();
+  const {
+    balance: bybitBalance,
+    loading: bybitBalanceLoading,
+    error: bybitBalanceError,
+    fetchBalance: fetchBybitBalance,
+  } = useBybitBalance();
 
   const { subscription, fetchSubscription } = useBilling();
 
   const [liveSignals, setLiveSignals] = useState(0);
   const [chartPeriod, setChartPeriod] = useState<30 | 90>(30);
+  const [dashExchange, setDashExchange] = useState<Exchange | "all">("all");
   const hasWallet = user?.has_wallet;
+  const hasBybit = user?.bybit_configured;
 
   useEffect(() => {
     fetchStrategies();
@@ -244,7 +258,10 @@ export default function DashboardPage() {
     if (hasWallet) {
       fetchBalance();
     }
-  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, fetchSubscription, hasWallet]);
+    if (hasBybit) {
+      fetchBybitBalance();
+    }
+  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, fetchBybitBalance, fetchSubscription, hasWallet, hasBybit]);
 
   useEffect(() => {
     fetchOverview(chartPeriod);
@@ -355,130 +372,87 @@ export default function DashboardPage() {
         <TickerBar items={tickerItems} />
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* ── Wallet Balance ── */}
+        {/* ── Exchange Switcher + Wallet Balances ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        {hasWallet && (
-          <motion.div
-            custom={0}
-            variants={fadeIn}
-            initial="hidden"
-            animate="show"
-          >
-            <div className="rounded-xl border border-neon/[0.12] bg-dark-200/80 p-6 backdrop-blur-sm transition-all duration-500 hover:border-neon/25 hover:shadow-glow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neon/[0.06]">
-                    <Wallet className="h-5 w-5 text-neon/60" />
+        {(hasWallet || hasBybit) && (
+          <motion.div custom={0} variants={fadeIn} initial="hidden" animate="show" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Account Balances</SectionLabel>
+              <ExchangeSwitcher active={dashExchange} onChange={setDashExchange} showAll={hasWallet && hasBybit} />
+            </div>
+
+            <div className={`grid gap-4 ${hasWallet && hasBybit && dashExchange === "all" ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+              {/* HL Balance */}
+              {hasWallet && (dashExchange === "all" || dashExchange === "hyperliquid") && (
+                <div className="rounded-xl border border-neon/[0.12] bg-dark-200/80 p-5 backdrop-blur-sm transition-all duration-500 hover:border-neon/25 hover:shadow-glow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <img src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp" alt="HL" className="h-6 w-6 rounded-md" />
+                      <div>
+                        <p className="text-xs font-semibold text-white">HyperLiquid</p>
+                        {walletBalance?.wallet_address_masked && (
+                          <p className="font-mono text-[9px] text-gray-600">{walletBalance.wallet_address_masked}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button onClick={fetchBalance} disabled={balanceLoading} className="rounded-md p-1.5 text-gray-600 hover:bg-white/[0.04] hover:text-gray-400 disabled:opacity-50">
+                      <RefreshCw className={`h-3 w-3 ${balanceLoading ? "animate-spin" : ""}`} />
+                    </button>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-                      Wallet Balance
-                    </p>
-                    {walletBalance?.wallet_address_masked && (
-                      <p className="font-mono text-[10px] text-gray-600">
-                        {walletBalance.wallet_address_masked}
-                      </p>
-                    )}
+                  {balanceLoading && !walletBalance ? (
+                    <div className="flex justify-center py-4"><div className="h-4 w-4 animate-spin rounded-full border-2 border-neon/20 border-t-neon/60" /></div>
+                  ) : walletBalance ? (
+                    <>
+                      <p className="font-serif text-2xl font-semibold tracking-tight text-white">{formatCurrency(walletBalance.total_balance)}</p>
+                      <div className="my-3 h-px bg-white/[0.06]" />
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Equity</p><p className="mt-0.5 text-xs font-medium text-white">{formatCurrency(walletBalance.account_equity)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Available</p><p className="mt-0.5 text-xs font-medium text-white">{formatCurrency(walletBalance.available_balance)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Unrealized PnL</p><p className="mt-0.5 text-xs font-medium" style={{ color: walletBalance.unrealized_pnl >= 0 ? NEON : RED }}>{walletBalance.unrealized_pnl >= 0 ? "+" : ""}{formatCurrency(walletBalance.unrealized_pnl)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Positions</p><p className="mt-0.5 text-xs font-medium text-white">{walletBalance.open_positions} <span className="text-[9px] text-gray-600">open</span></p></div>
+                      </div>
+                    </>
+                  ) : balanceError ? (
+                    <p className="text-xs text-gray-500 py-2">Unable to sync balance</p>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Bybit Balance */}
+              {hasBybit && (dashExchange === "all" || dashExchange === "bybit") && (
+                <div className="rounded-xl border border-orange-500/[0.12] bg-dark-200/80 p-5 backdrop-blur-sm transition-all duration-500 hover:border-orange-500/25">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <img src="https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp" alt="Bybit" className="h-6 w-6 rounded-md" />
+                      <div>
+                        <p className="text-xs font-semibold text-white">Bybit {bybitBalance?.testnet ? <span className="text-[9px] text-orange-400">(Testnet)</span> : ""}</p>
+                        {bybitBalance?.api_key_masked && (
+                          <p className="font-mono text-[9px] text-gray-600">{bybitBalance.api_key_masked}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button onClick={fetchBybitBalance} disabled={bybitBalanceLoading} className="rounded-md p-1.5 text-gray-600 hover:bg-white/[0.04] hover:text-gray-400 disabled:opacity-50">
+                      <RefreshCw className={`h-3 w-3 ${bybitBalanceLoading ? "animate-spin" : ""}`} />
+                    </button>
                   </div>
+                  {bybitBalanceLoading && !bybitBalance ? (
+                    <div className="flex justify-center py-4"><div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-400/20 border-t-orange-400/60" /></div>
+                  ) : bybitBalance?.connected ? (
+                    <>
+                      <p className="font-serif text-2xl font-semibold tracking-tight text-white">{formatCurrency(bybitBalance.total_balance)}</p>
+                      <div className="my-3 h-px bg-white/[0.06]" />
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Equity</p><p className="mt-0.5 text-xs font-medium text-white">{formatCurrency(bybitBalance.account_equity)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Available</p><p className="mt-0.5 text-xs font-medium text-white">{formatCurrency(bybitBalance.available_balance)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Unrealized PnL</p><p className="mt-0.5 text-xs font-medium" style={{ color: bybitBalance.unrealized_pnl >= 0 ? NEON : RED }}>{bybitBalance.unrealized_pnl >= 0 ? "+" : ""}{formatCurrency(bybitBalance.unrealized_pnl)}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-wider text-gray-600">Positions</p><p className="mt-0.5 text-xs font-medium text-white">{bybitBalance.open_positions} <span className="text-[9px] text-gray-600">open</span></p></div>
+                      </div>
+                    </>
+                  ) : bybitBalanceError ? (
+                    <p className="text-xs text-gray-500 py-2">Unable to sync balance</p>
+                  ) : null}
                 </div>
-                <div className="flex items-center gap-2">
-                  {walletBalance?.last_synced && (
-                    <span className="text-[9px] text-gray-700">
-                      {new Date(walletBalance.last_synced).toLocaleTimeString(
-                        "en-US",
-                        { hour: "2-digit", minute: "2-digit" }
-                      )}
-                    </span>
-                  )}
-                  <button
-                    onClick={fetchBalance}
-                    disabled={balanceLoading}
-                    className="rounded-md p-1.5 text-gray-600 transition-colors duration-300 hover:bg-white/[0.04] hover:text-gray-400 disabled:opacity-50"
-                  >
-                    <RefreshCw
-                      className={`h-3.5 w-3.5 ${balanceLoading ? "animate-spin" : ""}`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {balanceLoading && !walletBalance ? (
-                <div className="flex items-center justify-center py-6">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon/20 border-t-neon/60" />
-                </div>
-              ) : balanceError && !walletBalance ? (
-                <div className="text-center py-4">
-                  <p className="text-xs text-gray-500">
-                    Unable to sync wallet balance
-                  </p>
-                  <button
-                    onClick={fetchBalance}
-                    className="mt-2 text-[11px] text-neon/70 transition-colors duration-300 hover:text-neon"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : walletBalance ? (
-                <>
-                  <p className="font-serif text-3xl font-semibold tracking-tight text-white lg:text-4xl">
-                    {formatCurrency(walletBalance.total_balance)}
-                  </p>
-
-                  <div className="my-4 h-px bg-white/[0.06]" />
-
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">
-                        Account Equity
-                      </p>
-                      <p className="mt-1 font-serif text-sm font-medium text-white">
-                        {formatCurrency(walletBalance.account_equity)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">
-                        Available
-                      </p>
-                      <p className="mt-1 font-serif text-sm font-medium text-white">
-                        {formatCurrency(walletBalance.available_balance)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">
-                        Unrealized PnL
-                      </p>
-                      <p
-                        className="mt-1 font-serif text-sm font-medium"
-                        style={{
-                          color:
-                            walletBalance.unrealized_pnl >= 0 ? NEON : RED,
-                        }}
-                      >
-                        {walletBalance.unrealized_pnl >= 0 ? "+" : ""}
-                        {formatCurrency(walletBalance.unrealized_pnl)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-600">
-                        Positions
-                      </p>
-                      <p className="mt-1 font-serif text-sm font-medium text-white">
-                        {walletBalance.open_positions}
-                        <span className="ml-1 text-[10px] font-normal text-gray-600">
-                          open
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {walletBalance.last_synced === null && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[10px] text-amber-400/70">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400/60" />
-                      Sync incomplete — some data may be stale
-                    </div>
-                  )}
-                </>
-              ) : null}
+              )}
             </div>
           </motion.div>
         )}
@@ -926,7 +900,7 @@ export default function DashboardPage() {
                             <td className="px-6 py-3.5 text-right">
                               {exec.tx_hash ? (
                                 <a
-                                  href={`${EXPLORER_TX_URL}${exec.tx_hash}`}
+                                  href={`${EXPLORER_TX_URL[(exec as Record<string, unknown>).exchange as string || "hyperliquid"]}${exec.tx_hash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-gray-600 transition-colors duration-300 hover:text-neon"

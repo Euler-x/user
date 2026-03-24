@@ -486,3 +486,15 @@ export interface WalletBalance {
   wallet_address_masked: string | null;
   last_synced: string | null;
 }
+
+export interface BybitBalance {
+  connected: boolean;
+  testnet: boolean;
+  account_equity: number;
+  available_balance: number;
+  unrealized_pnl: number;
+  total_balance: number;
+  open_positions: number;
+  api_key_masked: string | null;
+  last_synced: string | null;
+}

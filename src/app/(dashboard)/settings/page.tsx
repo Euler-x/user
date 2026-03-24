@@ -12,6 +12,7 @@ import useAuth from "@/hooks/useAuth";
 import api from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
 import useWalletBalance from "@/hooks/useWalletBalance";
+import useBybitBalance from "@/hooks/useBybitBalance";
 import type { NotificationPreferences } from "@/types";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const [showGuide, setShowGuide] = useState(false);
   const [showUpdateWallet, setShowUpdateWallet] = useState(false);
   const { balance: walletBalance, loading: balanceLoading, fetchBalance } = useWalletBalance();
+  const { balance: bybitBalance, loading: bybitBalLoading, fetchBalance: fetchBybitBal } = useBybitBalance();
 
   // Bybit
   const [bybitApiKey, setBybitApiKey] = useState("");
@@ -66,7 +68,10 @@ export default function SettingsPage() {
     if (activeTab === "wallet" && user?.has_wallet) {
       fetchBalance();
     }
-  }, [activeTab, user?.has_wallet, fetchBalance]);
+    if (activeTab === "bybit" && user?.bybit_configured) {
+      fetchBybitBal();
+    }
+  }, [activeTab, user?.has_wallet, user?.bybit_configured, fetchBalance, fetchBybitBal]);
 
   const cleanHex = (s: string) => s.replace(/[^0-9a-fA-Fx]/g, "");
   const cleanAddress = cleanHex(walletAddress);
@@ -513,15 +518,57 @@ export default function SettingsPage() {
                         <span className="text-sm font-medium text-white">Bybit Account Connected</span>
                         <Badge variant="success">Active</Badge>
                       </div>
+                      <button onClick={fetchBybitBal} disabled={bybitBalLoading} className="rounded-md p-1.5 text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50">
+                        <RefreshCw className={`h-3.5 w-3.5 ${bybitBalLoading ? "animate-spin" : ""}`} />
+                      </button>
                     </div>
+
+                    {/* Balance info */}
+                    {bybitBalance?.connected && bybitBalance.last_synced && (
+                      <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Equity</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(bybitBalance.account_equity)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Available</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(bybitBalance.available_balance)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Unrealized PnL</p>
+                          <p className={`mt-0.5 text-sm font-medium ${bybitBalance.unrealized_pnl >= 0 ? "text-neon" : "text-red-400"}`}>
+                            {bybitBalance.unrealized_pnl >= 0 ? "+" : ""}{formatCurrency(bybitBalance.unrealized_pnl)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Positions</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{bybitBalance.open_positions} open</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {bybitBalance?.testnet && (
+                      <div className="flex items-center gap-2 text-xs text-orange-400">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>Testnet mode — using paper trading</span>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Shield className="h-3 w-3 text-orange-400/60" />
                       <span>API keys are encrypted with AES-256 and stored securely</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Lock className="h-3 w-3 text-orange-400/60" />
-                      <span>Only trade permissions are required — no withdrawal access</span>
+                      <span>Trade-only permissions — no withdrawal access</span>
                     </div>
+
+                    {bybitBalance?.api_key_masked && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Activity className="h-3 w-3 text-orange-400/60" />
+                        <span>API Key: <span className="font-mono">{bybitBalance.api_key_masked}</span></span>
+                      </div>
+                    )}
                   </div>
                   <Button size="sm" variant="danger" onClick={handleDisconnectBybit} loading={bybitLoading}>
                     <Trash2 className="h-3.5 w-3.5" />
