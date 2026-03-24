@@ -900,7 +900,7 @@ export default function DashboardPage() {
                             <td className="px-6 py-3.5 text-right">
                               {exec.tx_hash ? (
                                 <a
-                                  href={`${EXPLORER_TX_URL[(exec as Record<string, unknown>).exchange as string || "hyperliquid"]}${exec.tx_hash}`}
+                                  href={`${EXPLORER_TX_URL[(exec as unknown as Record<string, unknown>).exchange as string || "hyperliquid"]}${exec.tx_hash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-gray-600 transition-colors duration-300 hover:text-neon"
