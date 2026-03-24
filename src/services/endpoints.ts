@@ -123,6 +123,9 @@ export const ENDPOINTS = {
     BALANCE: `${API}/wallet/balance`,
   },
 
+  // AI Chat
+  CHAT: `${API}/chat`,
+
   // Market Data
   MARKET: {
     WS: `${WS_BASE}/market/ws`,

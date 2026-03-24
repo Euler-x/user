@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Providers from "@/components/providers/Providers";
+import AIChatWidget from "@/components/chat/AIChatWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +14,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <AIChatWidget />
+        </Providers>
       </body>
     </html>
   );
