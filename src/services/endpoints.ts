@@ -116,6 +116,7 @@ export const ENDPOINTS = {
     PROOF_OF_RESERVES: `${API}/transparency/proof-of-reserves`,
     POSITIONS: `${API}/transparency/positions`,
     WALLET_INFO: `${API}/transparency/wallet-info`,
+    POSITIONS_WS: `${WS_BASE}/transparency/ws/positions`,
   },
 
   // Wallet

@@ -446,9 +446,12 @@ export interface ProofOfReserves {
 }
 
 export interface LivePosition {
+  exchange: Exchange;
   symbol: string;
+  side: "long" | "short";
   size: number;
   entry_price: number;
+  mark_price: number;
   unrealized_pnl: number;
   leverage: number;
   liquidation_price: number | null;

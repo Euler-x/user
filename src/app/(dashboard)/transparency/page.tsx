@@ -24,42 +24,60 @@ import ConnectWalletModal from "@/components/ConnectWalletModal";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { useAuthStore } from "@/stores/authStore";
 import useTransparency from "@/hooks/useTransparency";
+import usePositionsStream from "@/hooks/usePositionsStream";
+import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
 import { formatCurrency } from "@/lib/utils";
+import type { Exchange, LivePosition } from "@/types";
+
+const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
+const BB_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
 
 export default function TransparencyPage() {
   const user = useAuthStore((s) => s.user);
   const {
     reserves,
-    positions,
     walletInfo,
     loading,
     fetchReserves,
-    fetchPositions,
     fetchWalletInfo,
   } = useTransparency();
+  const {
+    positions: livePositions,
+    hlPositions,
+    bybitPositions,
+    connected: wsConnected,
+    lastUpdate,
+    hlCount,
+    bybitCount,
+  } = usePositionsStream();
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [posExchange, setPosExchange] = useState<Exchange | "all">("all");
 
   const hasWallet = user?.has_wallet;
+  const hasBybit = user?.bybit_configured;
 
   useEffect(() => {
     if (hasWallet) {
       fetchReserves();
-      fetchPositions();
       fetchWalletInfo();
     }
-  }, [hasWallet, fetchReserves, fetchPositions, fetchWalletInfo]);
+  }, [hasWallet, fetchReserves, fetchWalletInfo]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchReserves(), fetchPositions()]);
+    await fetchReserves();
     setRefreshing(false);
   };
 
+  const displayPositions: LivePosition[] =
+    posExchange === "all" ? livePositions :
+    posExchange === "hyperliquid" ? hlPositions : bybitPositions;
+
   if (loading && !reserves && hasWallet) return <PageSpinner />;
 
-  // No wallet state
-  if (!hasWallet) {
+  // No exchange connected
+  if (!hasWallet && !hasBybit) {
     return (
       <PageTransition>
         <div className="space-y-8">
@@ -166,22 +184,44 @@ export default function TransparencyPage() {
           </GlowCard>
         </motion.div>
 
-        {/* Live Positions */}
+        {/* Live Positions (WebSocket Stream) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Activity className="h-5 w-5 text-neon" />
-              Live Positions
-            </h2>
-            <span className="text-xs text-gray-600">{positions.length} open</span>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Activity className="h-5 w-5 text-neon" />
+                Live Positions
+              </h2>
+              <div className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${wsConnected ? "bg-neon animate-pulse" : "bg-red-400"}`} />
+                <span className="text-[10px] text-gray-600">{wsConnected ? "Live" : "Connecting..."}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {lastUpdate && (
+                <span className="text-[9px] text-gray-700 font-mono">
+                  {new Date(lastUpdate).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                </span>
+              )}
+              <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                {hlCount > 0 && <span className="flex items-center gap-1"><img src={HL_LOGO} alt="HL" className="h-3 w-3 rounded-sm" />{hlCount}</span>}
+                {bybitCount > 0 && <span className="flex items-center gap-1"><img src={BB_LOGO} alt="BB" className="h-3 w-3 rounded-sm" />{bybitCount}</span>}
+                <span>{livePositions.length} total</span>
+              </div>
+              {(hasWallet && hasBybit) && (
+                <ExchangeSwitcher active={posExchange} onChange={setPosExchange} size="sm" />
+              )}
+            </div>
           </div>
-          {positions.length === 0 ? (
+          {displayPositions.length === 0 ? (
             <div className="bg-dark-200/80 border border-white/5 rounded-2xl p-8 text-center">
-              <p className="text-gray-500">No open positions at the moment.</p>
+              <p className="text-gray-500">
+                {wsConnected ? "No open positions at the moment." : "Connecting to live stream..."}
+              </p>
             </div>
           ) : (
             <div className="bg-dark-200/80 border border-white/5 rounded-2xl overflow-hidden">
@@ -189,9 +229,11 @@ export default function TransparencyPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/5">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Exchange</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Symbol</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Size</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Entry</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Mark</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Unrealized PnL</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Leverage</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Liq Price</th>
@@ -199,32 +241,39 @@ export default function TransparencyPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {positions.map((pos, i) => (
+                    {displayPositions.map((pos, i) => (
                       <motion.tr
-                        key={pos.symbol}
+                        key={`${pos.exchange}-${pos.symbol}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.03 }}
                         className="hover:bg-white/[0.02]"
                       >
                         <td className="px-4 py-3">
+                          <img
+                            src={pos.exchange === "bybit" ? BB_LOGO : HL_LOGO}
+                            alt={pos.exchange}
+                            className="h-5 w-5 rounded-sm"
+                          />
+                        </td>
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-gray-300">
-                              {pos.symbol.slice(0, 2)}
-                            </div>
                             <div>
                               <span className="text-sm font-medium text-white">{pos.symbol}</span>
-                              <span className={`text-xs ml-2 ${pos.size > 0 ? "text-neon" : "text-red-400"}`}>
-                                {pos.size > 0 ? "LONG" : "SHORT"}
+                              <span className={`text-xs ml-2 font-medium ${pos.side === "long" ? "text-neon" : "text-red-400"}`}>
+                                {pos.side.toUpperCase()}
                               </span>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right text-sm font-mono text-gray-200">
-                          {Math.abs(pos.size).toFixed(4)}
+                          {pos.size.toFixed(4)}
                         </td>
                         <td className="px-4 py-3 text-right text-sm font-mono text-gray-200">
                           {formatCurrency(pos.entry_price)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-mono text-gray-300">
+                          {pos.mark_price > 0 ? formatCurrency(pos.mark_price) : "\u2014"}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className={`text-sm font-medium ${pos.unrealized_pnl >= 0 ? "text-neon" : "text-red-400"}`}>
@@ -232,13 +281,13 @@ export default function TransparencyPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right text-sm text-gray-400 hidden sm:table-cell">
-                          {pos.leverage.toFixed(1)}x
+                          {pos.leverage > 0 ? `${pos.leverage.toFixed(1)}x` : "\u2014"}
                         </td>
                         <td className="px-4 py-3 text-right text-sm text-gray-400 hidden md:table-cell">
-                          {pos.liquidation_price ? formatCurrency(pos.liquidation_price) : "—"}
+                          {pos.liquidation_price ? formatCurrency(pos.liquidation_price) : "\u2014"}
                         </td>
                         <td className="px-4 py-3 text-right text-sm text-gray-400 hidden lg:table-cell">
-                          {formatCurrency(pos.margin_used)}
+                          {pos.margin_used > 0 ? formatCurrency(pos.margin_used) : "\u2014"}
                         </td>
                       </motion.tr>
                     ))}
