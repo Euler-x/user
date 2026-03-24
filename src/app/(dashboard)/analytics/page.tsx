@@ -17,8 +17,8 @@ import PageTransition from "@/components/PageTransition";
 import GlowCard from "@/components/ui/GlowCard";
 import { PageSpinner } from "@/components/ui/Spinner";
 import EquityCurveChart from "@/components/charts/EquityCurveChart";
-import useAnalytics from "@/hooks/useAnalytics";
 import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
+import useAnalytics from "@/hooks/useAnalytics";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { Exchange } from "@/types";
 
@@ -30,11 +30,13 @@ const PERIODS = [
 export default function AnalyticsPage() {
   const { overview, equityCurve, loading, fetchOverview, fetchEquityCurve } = useAnalytics();
   const [days, setDays] = useState(30);
+  const [exchange, setExchange] = useState<Exchange | "all">("all");
 
   useEffect(() => {
-    fetchOverview(days);
-    fetchEquityCurve({ days });
-  }, [days, fetchOverview, fetchEquityCurve]);
+    const ex = exchange === "all" ? undefined : exchange;
+    fetchOverview(days, ex);
+    fetchEquityCurve({ days, exchange: ex });
+  }, [days, exchange, fetchOverview, fetchEquityCurve]);
 
   if (loading && !overview) return <PageSpinner />;
 
@@ -92,6 +94,8 @@ export default function AnalyticsPage() {
     },
   ];
 
+  const exchangeLabel = exchange === "all" ? "" : exchange === "bybit" ? " (Bybit)" : " (HyperLiquid)";
+
   return (
     <PageTransition>
       <div className="space-y-8">
@@ -99,7 +103,7 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <BarChart3 className="h-6 w-6 text-neon" />
-              Quant Analytics
+              Quant Analytics{exchangeLabel}
             </h1>
             <p className="text-sm text-gray-400 mt-1">
               Performance metrics across {overview?.total_trades ?? 0} closed trades
@@ -107,23 +111,23 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-          {/* Period Selector */}
-          <div className="flex gap-1 bg-dark-200/80 border border-white/5 rounded-lg p-1">
-            {PERIODS.map((period) => (
-              <button
-                key={period.value}
-                onClick={() => setDays(period.value)}
-                className={cn(
-                  "px-4 py-1.5 rounded-md text-xs font-medium transition-all",
-                  days === period.value
-                    ? "bg-white/10 text-white"
-                    : "text-gray-500 hover:text-gray-300"
-                )}
-              >
-                {period.label}
-              </button>
-            ))}
-          </div>
+            <ExchangeSwitcher active={exchange} onChange={setExchange} size="sm" />
+            <div className="flex gap-1 bg-dark-200/80 border border-white/5 rounded-lg p-1">
+              {PERIODS.map((period) => (
+                <button
+                  key={period.value}
+                  onClick={() => setDays(period.value)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-md text-xs font-medium transition-all",
+                    days === period.value
+                      ? "bg-white/10 text-white"
+                      : "text-gray-500 hover:text-gray-300"
+                  )}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -185,7 +189,7 @@ export default function AnalyticsPage() {
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-neon" />
-                Equity Curve
+                Equity Curve{exchangeLabel}
               </h2>
               <p className="text-xs text-gray-500 mt-1">Cumulative PnL over the last {days} days</p>
             </div>
@@ -197,9 +201,12 @@ export default function AnalyticsPage() {
         {overview?.total_trades === 0 && (
           <div className="bg-dark-200/80 border border-white/5 rounded-2xl p-12 text-center">
             <BarChart3 className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No Closed Trades Yet</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">No Closed Trades Yet{exchangeLabel}</h3>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Analytics will populate once you have closed trades. Create and activate a strategy to start generating execution data.
+              {exchange === "all"
+                ? "Analytics will populate once you have closed trades. Create and activate a strategy to start generating execution data."
+                : `No closed trades on ${exchange === "bybit" ? "Bybit" : "HyperLiquid"} yet. Switch to "All" to see combined analytics.`
+              }
             </p>
           </div>
         )}

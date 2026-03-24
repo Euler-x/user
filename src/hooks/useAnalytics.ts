@@ -9,11 +9,13 @@ export default function useAnalytics() {
   const [equityCurve, setEquityCurve] = useState<EquityCurvePoint[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchOverview = useCallback(async (days: number = 30) => {
+  const fetchOverview = useCallback(async (days: number = 30, exchange?: string) => {
     setLoading(true);
     try {
+      const params: Record<string, unknown> = { days };
+      if (exchange) params.exchange = exchange;
       const { data } = await api.get<AnalyticsOverview>(ENDPOINTS.ANALYTICS.OVERVIEW, {
-        params: { days },
+        params,
       });
       setOverview(data);
       return data;
@@ -22,11 +24,13 @@ export default function useAnalytics() {
     }
   }, []);
 
-  const fetchStrategyAnalytics = useCallback(async (id: string, days: number = 30) => {
+  const fetchStrategyAnalytics = useCallback(async (id: string, days: number = 30, exchange?: string) => {
     setLoading(true);
     try {
+      const params: Record<string, unknown> = { days };
+      if (exchange) params.exchange = exchange;
       const { data } = await api.get<StrategyAnalytics>(ENDPOINTS.ANALYTICS.STRATEGY(id), {
-        params: { days },
+        params,
       });
       setStrategyAnalytics(data);
       return data;
@@ -36,7 +40,7 @@ export default function useAnalytics() {
   }, []);
 
   const fetchEquityCurve = useCallback(
-    async (params?: { days?: number; strategy_id?: string }) => {
+    async (params?: { days?: number; strategy_id?: string; exchange?: string }) => {
       setLoading(true);
       try {
         const { data } = await api.get<EquityCurvePoint[]>(ENDPOINTS.ANALYTICS.EQUITY_CURVE, {

@@ -150,14 +150,12 @@ export default function ExecutionsPage() {
   const [exchangeFilter, setExchangeFilter] = useState<Exchange | "all">("all");
 
   useEffect(() => {
-    fetchExecutions({ page, page_size: pageSize });
-  }, [page, pageSize, fetchExecutions]);
+    const params: Record<string, unknown> = { page, page_size: pageSize };
+    if (exchangeFilter !== "all") params.exchange = exchangeFilter;
+    fetchExecutions(params);
+  }, [page, pageSize, exchangeFilter, fetchExecutions]);
 
   if (loading && executions.length === 0) return <PageSpinner />;
-
-  const filtered = exchangeFilter === "all"
-    ? executions
-    : executions.filter((e) => getExchange(e) === exchangeFilter);
 
   return (
     <PageTransition>
@@ -170,7 +168,7 @@ export default function ExecutionsPage() {
           <ExchangeSwitcher active={exchangeFilter} onChange={setExchangeFilter} />
         </div>
 
-        {filtered.length === 0 ? (
+        {executions.length === 0 ? (
           <EmptyState
             icon={Activity}
             title="No Executions Yet"
@@ -184,7 +182,7 @@ export default function ExecutionsPage() {
         ) : (
           <Table
             columns={columns}
-            data={filtered}
+            data={executions}
             emptyMessage="No executions yet"
           />
         )}
