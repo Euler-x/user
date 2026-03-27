@@ -25,6 +25,7 @@ import { PageSpinner } from "@/components/ui/Spinner";
 import { useAuthStore } from "@/stores/authStore";
 import useTransparency from "@/hooks/useTransparency";
 import usePositionsStream from "@/hooks/usePositionsStream";
+import useBybitBalance from "@/hooks/useBybitBalance";
 import ExchangeSwitcher from "@/components/ui/ExchangeSwitcher";
 import { formatCurrency } from "@/lib/utils";
 import type { Exchange, LivePosition } from "@/types";
@@ -50,6 +51,11 @@ export default function TransparencyPage() {
     hlCount,
     bybitCount,
   } = usePositionsStream();
+  const {
+    balance: bybitBalance,
+    loading: bybitLoading,
+    fetchBalance: fetchBybitBalance,
+  } = useBybitBalance();
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [posExchange, setPosExchange] = useState<Exchange | "all">("all");
@@ -62,11 +68,17 @@ export default function TransparencyPage() {
       fetchReserves();
       fetchWalletInfo();
     }
-  }, [hasWallet, fetchReserves, fetchWalletInfo]);
+    if (hasBybit) {
+      fetchBybitBalance();
+    }
+  }, [hasWallet, hasBybit, fetchReserves, fetchWalletInfo, fetchBybitBalance]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchReserves();
+    const promises = [];
+    if (hasWallet) promises.push(fetchReserves());
+    if (hasBybit) promises.push(fetchBybitBalance());
+    await Promise.all(promises);
     setRefreshing(false);
   };
 
@@ -74,7 +86,7 @@ export default function TransparencyPage() {
     posExchange === "all" ? livePositions :
     posExchange === "hyperliquid" ? hlPositions : bybitPositions;
 
-  if (loading && !reserves && hasWallet) return <PageSpinner />;
+  if ((loading || bybitLoading) && !reserves && !bybitBalance && (hasWallet || hasBybit)) return <PageSpinner />;
 
   // No exchange connected
   if (!hasWallet && !hasBybit) {
@@ -183,6 +195,43 @@ export default function TransparencyPage() {
             )}
           </GlowCard>
         </motion.div>
+
+        {/* Bybit Account Overview */}
+        {hasBybit && bybitBalance && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <GlowCard>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <img src={BB_LOGO} alt="Bybit" className="h-5 w-5 rounded-sm" />
+                  Bybit Account
+                </h2>
+                <Badge variant={bybitBalance.testnet ? "outline" : "success"}>
+                  {bybitBalance.testnet ? "Testnet" : "Mainnet"}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white/[0.03] rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Equity</p>
+                  <p className="text-2xl font-bold text-white">{formatCurrency(bybitBalance.account_equity)}</p>
+                </div>
+                <div className="bg-white/[0.03] rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Available Balance</p>
+                  <p className="text-2xl font-bold text-neon">{formatCurrency(bybitBalance.available_balance)}</p>
+                </div>
+                <div className="bg-white/[0.03] rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Unrealized PnL</p>
+                  <p className={`text-2xl font-bold ${(bybitBalance.unrealized_pnl ?? 0) >= 0 ? "text-neon" : "text-red-400"}`}>
+                    {(bybitBalance.unrealized_pnl ?? 0) >= 0 ? "+" : ""}{formatCurrency(bybitBalance.unrealized_pnl ?? 0)}
+                  </p>
+                </div>
+              </div>
+            </GlowCard>
+          </motion.div>
+        )}
 
         {/* Live Positions (WebSocket Stream) */}
         <motion.div
