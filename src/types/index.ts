@@ -135,7 +135,8 @@ export interface SignalDetail extends Signal {
 // ── Executions ─────────────────────────────────────────────
 export interface Execution {
   id: string;
-  signal_id: string;
+  signal_id: string | null;
+  bybit_signal_id: string | null;
   user_id: string;
   strategy_id: string;
   order_type: OrderType;
@@ -146,6 +147,8 @@ export interface Execution {
   leverage: number;
   pnl: number | null;
   tx_hash: string | null;
+  exchange_order_id: string | null;
+  exchange: Exchange;
   error_message: string | null;
   status: ExecutionStatus;
   executed_at: string | null;

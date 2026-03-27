@@ -24,7 +24,7 @@ const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/h
 const BB_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
 
 function getExchange(e: Execution): string {
-  return (e as unknown as Record<string, unknown>).exchange as string || "hyperliquid";
+  return e.exchange || "hyperliquid";
 }
 
 const columns = [
