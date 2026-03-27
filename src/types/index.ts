@@ -64,6 +64,7 @@ export interface Strategy {
   allocation_pct: number;
   max_drawdown_percent: number;
   is_active: boolean;
+  target_exchange: string;
   daily_loss_cap_percent: number | null;
   target_volatility: number | null;
   expected_volatility: number | null;
@@ -90,6 +91,7 @@ export interface StrategyCreate {
   timeframe?: StrategyTimeframe;
   target_return_min?: number;
   target_return_max?: number;
+  target_exchange?: string;
 }
 
 export interface StrategyUpdate {
@@ -105,6 +107,7 @@ export interface StrategyUpdate {
   timeframe?: StrategyTimeframe;
   target_return_min?: number;
   target_return_max?: number;
+  target_exchange?: string;
 }
 
 // ── Signals ────────────────────────────────────────────────

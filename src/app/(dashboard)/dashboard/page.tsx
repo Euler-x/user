@@ -250,10 +250,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchStrategies();
-    fetchSignals({ page: 1, page_size: 5 }).then(
-      (d) => d && setLiveSignals(d.total)
-    );
-    fetchExecutions({ page: 1, page_size: 5 });
+    const sigParams: Record<string, unknown> = { page: 1, page_size: 5 };
+    const execParams: Record<string, unknown> = { page: 1, page_size: 5 };
+    if (dashExchange !== "all") {
+      sigParams.exchange = dashExchange;
+      execParams.exchange = dashExchange;
+    }
+    fetchSignals(sigParams).then((d) => d && setLiveSignals(d.total));
+    fetchExecutions(execParams);
     fetchSubscription();
     if (hasWallet) {
       fetchBalance();
@@ -261,12 +265,14 @@ export default function DashboardPage() {
     if (hasBybit) {
       fetchBybitBalance();
     }
-  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, fetchBybitBalance, fetchSubscription, hasWallet, hasBybit]);
+  }, [fetchStrategies, fetchSignals, fetchExecutions, fetchBalance, fetchBybitBalance, fetchSubscription, hasWallet, hasBybit, dashExchange]);
 
   useEffect(() => {
-    fetchOverview(chartPeriod);
-    fetchEquityCurve({ days: chartPeriod });
-  }, [chartPeriod, fetchOverview, fetchEquityCurve]);
+    const overviewParams: Record<string, unknown> = { days: chartPeriod };
+    if (dashExchange !== "all") overviewParams.exchange = dashExchange;
+    fetchOverview(chartPeriod, dashExchange !== "all" ? dashExchange : undefined);
+    fetchEquityCurve({ days: chartPeriod, ...(dashExchange !== "all" && { exchange: dashExchange }) });
+  }, [chartPeriod, dashExchange, fetchOverview, fetchEquityCurve]);
 
   const loading = stratLoading || sigLoading || execLoading;
   if (loading && strategies.length === 0) return <PageSpinner />;

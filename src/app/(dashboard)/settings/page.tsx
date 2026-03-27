@@ -17,7 +17,7 @@ import type { NotificationPreferences } from "@/types";
 import { cn, formatCurrency } from "@/lib/utils";
 
 const TABS = [
-  { key: "wallet", label: "Wallet", icon: Wallet },
+  { key: "wallet", label: "HyperLiquid", icon: Wallet },
   { key: "bybit", label: "Bybit", icon: BarChart3, iconUrl: "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp" },
   { key: "email", label: "Email", icon: Mail },
   { key: "telegram", label: "Telegram", icon: Send },
