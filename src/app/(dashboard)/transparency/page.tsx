@@ -209,7 +209,7 @@ export default function TransparencyPage() {
                   <img src={BB_LOGO} alt="Bybit" className="h-5 w-5 rounded-sm" />
                   Bybit Account
                 </h2>
-                <Badge variant={bybitBalance.testnet ? "outline" : "success"}>
+                <Badge variant={bybitBalance.testnet ? "warning" : "success"}>
                   {bybitBalance.testnet ? "Testnet" : "Mainnet"}
                 </Badge>
               </div>
