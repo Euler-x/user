@@ -78,7 +78,7 @@ export default function TransparencyPage() {
     const promises = [];
     if (hasWallet) promises.push(fetchReserves());
     if (hasBybit) promises.push(fetchBybitBalance());
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     setRefreshing(false);
   };
 
@@ -379,8 +379,9 @@ export default function TransparencyPage() {
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
+              {walletInfo?.smart_contract_audit_link ? (
               <a
-                href={walletInfo?.smart_contract_audit_link || "#"}
+                href={walletInfo.smart_contract_audit_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300"
@@ -388,6 +389,11 @@ export default function TransparencyPage() {
                 Security & Audit Documentation
                 <ExternalLink className="h-3 w-3" />
               </a>
+              ) : (
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                Security & Audit Documentation (pending)
+              </span>
+              )}
             </div>
           </Card>
 
