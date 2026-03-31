@@ -196,8 +196,8 @@ export default function Sidebar() {
                 <Sparkles className="h-4 w-4 text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white">Upgrade to Pro</p>
-                <p className="text-[10px] text-gray-500">Unlock all features</p>
+                <p className="text-xs font-semibold text-white">Subscribe</p>
+                <p className="text-[10px] text-gray-500">$250/mo — full access</p>
               </div>
               <ArrowRight className="h-3.5 w-3.5 text-amber-400/40 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </Link>

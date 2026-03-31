@@ -33,28 +33,21 @@ const strategyMethods = [
 
 const pricingTiers = [
   {
-    name: "ATE Core",
-    price: 100,
-    desc: "Foundational execution environment for disciplined participants entering AI-driven deployment.",
-    features: ["3 Active Strategies", "Basic Analytics", "Email Notifications", "Standard Execution"],
-    featured: false,
-    color: "#06B6D4",
-  },
-  {
-    name: "ATE Pro",
+    name: "EulerX ATE",
     price: 250,
-    desc: "Advanced strategy frameworks and enhanced analytics for active capital allocators.",
-    features: ["10 Active Strategies", "Advanced Analytics", "Telegram Alerts", "Priority Execution", "ATE Full Access"],
+    desc: "Complete access to the AI-powered Automated Trading Engine. No tiers, no feature gates — everything included.",
+    features: [
+      "Unlimited Strategies",
+      "Both Exchanges (HyperLiquid + Bybit)",
+      "AI Consensus Signals + Full Reasoning",
+      "Advanced Analytics (Sharpe, Drawdown, PnL)",
+      "Telegram + Email Alerts",
+      "Priority Execution",
+      "Dedicated Support",
+      "7-Day Free Trial",
+    ],
     featured: true,
     color: "#39FF14",
-  },
-  {
-    name: "ATE Prime",
-    price: 500,
-    desc: "Institutional-grade execution models with priority engine allocation and extended strategy scope.",
-    features: ["Unlimited Strategies", "Institutional Analytics", "All Channels", "Dedicated Execution", "ATE Full Access", "Priority Support"],
-    featured: false,
-    color: "#8B5CF6",
   },
 ];
 
@@ -1086,17 +1079,17 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <SectionBadge>Access Tiers</SectionBadge>
+              <SectionBadge>Simple Pricing</SectionBadge>
               <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-5">
-                Access <span className="text-gradient">Calibrated</span> to Scale
+                One Plan. <span className="text-gradient">Complete</span> Access.
               </h2>
               <p className="text-gray-400 max-w-xl mx-auto text-lg">
-                Choose the execution environment that matches your trading requirements.
+                No tiers, no feature gates. Everything included for $250/month with a 7-day free trial.
               </p>
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
+          <div className="max-w-lg mx-auto">
             {pricingTiers.map((tier, i) => (
               <motion.div
                 key={tier.name}
@@ -1136,7 +1129,7 @@ export default function LandingPage() {
                         className="self-start px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4"
                         style={{ backgroundColor: `${tier.color}15`, color: tier.color }}
                       >
-                        Most Popular
+                        Full Access
                       </div>
                     )}
 
@@ -1160,11 +1153,11 @@ export default function LandingPage() {
 
                     <Link href="/register" className="block">
                       <Button
-                        variant={tier.featured ? "primary" : "secondary"}
+                        variant="primary"
                         className="w-full group"
                         size="lg"
                       >
-                        Get Started
+                        Start 7-Day Free Trial
                         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </Link>

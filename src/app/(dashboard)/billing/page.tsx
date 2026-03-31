@@ -451,7 +451,7 @@ export default function BillingPage() {
                     <ul className="space-y-2 mb-6">
                       <li className="flex items-center gap-2 text-sm text-gray-300">
                         <Check className="h-4 w-4 text-neon flex-shrink-0" />
-                        Up to {plan.max_strategies} strategies
+                        {plan.max_strategies === 0 ? "Unlimited" : `Up to ${plan.max_strategies}`} strategies
                       </li>
                       <li className="flex items-center gap-2 text-sm text-gray-300">
                         <Check className="h-4 w-4 text-neon flex-shrink-0" />
