@@ -426,10 +426,12 @@ export default function BillingPage() {
           </Card>
         )}
 
-        {/* Plans */}
+        {/* Plan */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Available Plans</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <h2 className="text-lg font-semibold text-white mb-4">
+            {hasActiveSub ? "Your Plan" : "Subscribe"}
+          </h2>
+          <div className="max-w-xl mx-auto">
             {plans.map((plan, i) => {
               const isCurrentPlan = subscription?.plan_id === plan.id && hasActiveSub;
               return (
@@ -441,35 +443,47 @@ export default function BillingPage() {
                 >
                   <GlowCard className={isCurrentPlan ? "border-neon/30" : ""}>
                     {isCurrentPlan && (
-                      <Badge variant="neon" className="mb-3">Current Plan</Badge>
+                      <Badge variant="neon" className="mb-3">Active</Badge>
                     )}
-                    <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                    <div className="mt-2 mb-4">
-                      <span className="text-3xl font-bold text-neon">{formatCurrency(plan.price_usd)}</span>
-                      <span className="text-sm text-gray-500">/{plan.billing_cycle}</span>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-neon">{formatCurrency(plan.price_usd)}</span>
+                        <span className="text-sm text-gray-500">/{plan.billing_cycle}</span>
+                      </div>
                     </div>
-                    <ul className="space-y-2 mb-6">
-                      <li className="flex items-center gap-2 text-sm text-gray-300">
+                    <div className="grid grid-cols-2 gap-2 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
                         <Check className="h-4 w-4 text-neon flex-shrink-0" />
-                        {plan.max_strategies === 0 ? "Unlimited" : `Up to ${plan.max_strategies}`} strategies
-                      </li>
-                      <li className="flex items-center gap-2 text-sm text-gray-300">
+                        {plan.max_strategies === 0 ? "Unlimited" : `${plan.max_strategies}`} Strategies
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
                         <Check className="h-4 w-4 text-neon flex-shrink-0" />
-                        {formatCurrency(plan.max_allocation)} max allocation
-                      </li>
-                      {plan.ate_access && (
-                        <li className="flex items-center gap-2 text-sm text-gray-300">
-                          <Zap className="h-4 w-4 text-neon flex-shrink-0" />
-                          ATE access
-                        </li>
-                      )}
+                        Both Exchanges
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Zap className="h-4 w-4 text-neon flex-shrink-0" />
+                        AI Consensus Signals
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Check className="h-4 w-4 text-neon flex-shrink-0" />
+                        Advanced Analytics
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Check className="h-4 w-4 text-neon flex-shrink-0" />
+                        Priority Execution
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Check className="h-4 w-4 text-neon flex-shrink-0" />
+                        Telegram + Email Alerts
+                      </div>
                       {plan.trial_days > 0 && (
-                        <li className="flex items-center gap-2 text-sm text-gray-300">
+                        <div className="flex items-center gap-2 text-sm text-gray-300 col-span-2">
                           <Check className="h-4 w-4 text-neon flex-shrink-0" />
-                          {plan.trial_days} day free trial
-                        </li>
+                          {plan.trial_days}-Day Free Trial
+                        </div>
                       )}
-                    </ul>
+                    </div>
                     {isCurrentPlan ? (
                       <Button className="w-full" variant="secondary" disabled>
                         Current Plan
@@ -491,7 +505,7 @@ export default function BillingPage() {
                           disabled={loading}
                           onClick={() => setCheckoutPlan(plan)}
                         >
-                          Subscribe Now
+                          Pay with Crypto
                         </Button>
                       </div>
                     ) : (
@@ -501,7 +515,7 @@ export default function BillingPage() {
                         disabled={loading}
                         onClick={() => setCheckoutPlan(plan)}
                       >
-                        Subscribe
+                        Pay with Crypto
                       </Button>
                     )}
                   </GlowCard>
