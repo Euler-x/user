@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Zap, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
 import useAuth from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
@@ -49,11 +49,11 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-md"
       >
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-neon/10 border border-neon/20 mb-4">
-            <Zap className="h-8 w-8 text-neon" />
+          <div className="flex justify-center mb-6">
+            <img src="/logo_dark.png" alt="EulerX" className="h-10 w-auto" />
           </div>
           <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-          <p className="text-sm text-gray-400 mt-2">Sign in to your EulerX account</p>
+          <p className="text-sm text-gray-400 mt-2">Sign in to your account</p>
         </div>
 
         <div className="bg-dark-200/80 backdrop-blur-xl border border-white/5 rounded-2xl p-8">

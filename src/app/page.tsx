@@ -1662,11 +1662,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden">
-                  <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
-                </div>
-                <span className="text-xl font-bold text-gradient">EulerX</span>
+              <div className="mb-3">
+                <img src="/logo_dark.png" alt="EulerX" className="h-10 w-auto" />
               </div>
               <p className="text-xs text-gray-600 max-w-sm leading-relaxed">
                 Multi-exchange AI execution infrastructure across HyperLiquid and Bybit.
