@@ -61,26 +61,11 @@ function setTranslateCombo(value: string, retries = 3) {
 /** Trigger Google Translate via the hidden widget */
 function triggerTranslation(langCode: string) {
   if (langCode === "en") {
-    // 1. Clear cookies so the translation doesn't persist on next load
+    // Clear cookies then reload immediately — do NOT interact with the GT widget
+    // first, because dispatching a change event causes GT to re-set the cookie
+    // before the reload, which makes the page reload back into the old language.
     clearGoogTransCookies();
-
-    // 2. Try to restore via the hidden select (set to empty = "Select Language" = original)
-    const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
-    if (select) {
-      select.value = "";
-      select.dispatchEvent(new Event("change"));
-
-      // Google Translate doesn't always honour empty-string reset.
-      // If the page is still translated after 300ms, force reload.
-      setTimeout(() => {
-        if (document.documentElement.lang !== "en" || document.querySelector(".translated-ltr, .translated-rtl")) {
-          window.location.reload();
-        }
-      }, 400);
-    } else {
-      // Widget not initialised — cookie clear + reload is the only way
-      window.location.reload();
-    }
+    window.location.reload();
     return;
   }
 
