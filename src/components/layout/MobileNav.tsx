@@ -116,11 +116,10 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed left-0 top-0 bottom-0 w-72 bg-dark-200 border-r border-white/5 z-50 lg:hidden flex flex-col"
             >
-              {/* Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-4">
                 <Link href="/dashboard" onClick={onClose} className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-neon/20 flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-neon" />
+                  <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden">
+                    <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
                   </div>
                   <span className="text-xl font-bold text-gradient">EulerX</span>
                 </Link>

@@ -97,8 +97,8 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="px-6 pt-6 pb-4">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="h-9 w-9 rounded-xl bg-neon/20 flex items-center justify-center group-hover:shadow-neon-sm transition-shadow duration-300">
-              <Zap className="h-5 w-5 text-neon" />
+            <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center group-hover:shadow-neon-sm transition-shadow duration-300 overflow-hidden">
+              <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
             </div>
             <span className="text-xl font-bold text-gradient">EulerX</span>
           </Link>
