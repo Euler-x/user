@@ -96,11 +96,8 @@ export default function Sidebar() {
       <aside className="hidden lg:flex flex-col w-64 h-screen bg-dark-200/50 backdrop-blur-xl border-r border-white/5 fixed left-0 top-0 z-40">
         {/* Logo */}
         <div className="px-6 pt-6 pb-4">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center group-hover:shadow-neon-sm transition-shadow duration-300 overflow-hidden">
-              <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
-            </div>
-            <span className="text-xl font-bold text-gradient">EulerX</span>
+          <Link href="/dashboard" className="flex items-center group">
+            <img src="/logo_dark.png" alt="EulerX" className="h-8 w-auto" />
           </Link>
         </div>
 

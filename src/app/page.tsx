@@ -498,12 +498,8 @@ export default function LandingPage() {
       {/* ─── Navbar ─── */}
       <nav className="fixed top-0 w-full z-50 bg-dark/70 backdrop-blur-2xl border-b border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden">
-              <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
-              <div className="absolute inset-0 rounded-xl bg-neon/10 animate-glow-pulse" />
-            </div>
-            <span className="text-xl font-bold text-gradient">EulerX</span>
+          <div className="flex items-center">
+            <img src="/logo_dark.png" alt="EulerX" className="h-8 w-auto" />
           </div>
           <div className="hidden md:flex items-center gap-8">
             {[

@@ -117,11 +117,8 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
               className="fixed left-0 top-0 bottom-0 w-72 bg-dark-200 border-r border-white/5 z-50 lg:hidden flex flex-col"
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-4">
-                <Link href="/dashboard" onClick={onClose} className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden">
-                    <img src="/icon.svg" alt="EulerX" className="h-7 w-7" />
-                  </div>
-                  <span className="text-xl font-bold text-gradient">EulerX</span>
+                <Link href="/dashboard" onClick={onClose} className="flex items-center">
+                  <img src="/logo_dark.png" alt="EulerX" className="h-8 w-auto" />
                 </Link>
                 <button
                   onClick={onClose}
