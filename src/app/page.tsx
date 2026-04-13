@@ -11,6 +11,7 @@ import {
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import useMarketData from "@/hooks/useMarketData";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DATA
@@ -520,6 +521,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
               Sign In
             </Link>
