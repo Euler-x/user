@@ -87,7 +87,7 @@ export default function AIChatWidget() {
       {/* Floating trigger button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`fixed bottom-5 right-5 z-[9999] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
+        className={`fixed bottom-5 left-5 z-[9999] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 ${
           open
             ? "bg-white/10 backdrop-blur-md rotate-45"
             : "bg-neon hover:bg-neon/90"
@@ -127,7 +127,7 @@ export default function AIChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-5 z-[9999] flex h-[520px] w-[380px] flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200 shadow-2xl sm:w-[400px]">
+        <div className="fixed bottom-24 left-5 z-[9999] flex h-[520px] w-[380px] flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-dark-200 shadow-2xl sm:w-[400px]">
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-white/[0.06] bg-dark-300 px-4 py-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neon/20">
