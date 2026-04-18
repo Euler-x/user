@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, UserPlus, Gift, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Turnstile, { type TurnstileInstance } from "@/components/ui/Turnstile";
 import useAuth from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -23,7 +24,9 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [cfToken, setCfToken] = useState("");
 
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -50,11 +53,16 @@ function RegisterForm() {
     }
 
     try {
-      await register(email, password, referralCode || undefined);
+      await register(email, password, cfToken, referralCode || undefined);
     } catch {
-      // Error toast handled by API interceptor
+      // Reset widget so user gets a fresh token on retry
+      turnstileRef.current?.reset();
+      setCfToken("");
     }
   };
+
+  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+  const canSubmit = !loading && email && password && confirmPassword && acceptedTerms && (siteKeyMissing || !!cfToken);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -189,7 +197,14 @@ function RegisterForm() {
               <p className="text-sm text-red-400">{error}</p>
             )}
 
-            <Button type="submit" size="lg" className="w-full" loading={loading} disabled={!email || !password || !confirmPassword || !acceptedTerms}>
+            <Turnstile
+              ref={turnstileRef}
+              onSuccess={setCfToken}
+              onExpire={() => setCfToken("")}
+              onError={() => setCfToken("")}
+            />
+
+            <Button type="submit" size="lg" className="w-full" loading={loading} disabled={!canSubmit}>
               <UserPlus className="h-4 w-4" />
               Create Account
             </Button>

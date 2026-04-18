@@ -1,26 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowRight, CheckCircle2 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Turnstile, { type TurnstileInstance } from "@/components/ui/Turnstile";
 import useAuth from "@/hooks/useAuth";
 
 export default function ForgotPasswordPage() {
   const { requestPasswordReset, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [cfToken, setCfToken] = useState("");
+
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await requestPasswordReset(email);
+      await requestPasswordReset(email, cfToken);
       setSent(true);
     } catch {
-      // Error toast handled by API interceptor
+      // Reset widget so user gets a fresh token on retry
+      turnstileRef.current?.reset();
+      setCfToken("");
     }
   };
+
+  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+  const canSubmit = !loading && email && (siteKeyMissing || !!cfToken);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -67,12 +76,19 @@ export default function ForgotPasswordPage() {
                     </div>
                   </div>
 
+                  <Turnstile
+                    ref={turnstileRef}
+                    onSuccess={setCfToken}
+                    onExpire={() => setCfToken("")}
+                    onError={() => setCfToken("")}
+                  />
+
                   <Button
                     type="submit"
                     size="lg"
                     className="w-full group"
                     loading={loading}
-                    disabled={!email}
+                    disabled={!canSubmit}
                   >
                     Send Reset Link
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

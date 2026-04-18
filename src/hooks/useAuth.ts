@@ -10,12 +10,13 @@ export default function useAuth() {
   const { setAuth, setUser, logout, user } = useAuthStore();
 
   const register = useCallback(
-    async (email: string, password: string, referralCode?: string) => {
+    async (email: string, password: string, cfTurnstileToken: string, referralCode?: string) => {
       setLoading(true);
       try {
         const { data } = await api.post<AuthResponse>(ENDPOINTS.AUTH.REGISTER, {
           email,
           password,
+          cf_turnstile_token: cfTurnstileToken,
           referral_code: referralCode || undefined,
         });
         setAuth(data.user, data.access_token, data.refresh_token);
@@ -29,12 +30,13 @@ export default function useAuth() {
   );
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, cfTurnstileToken: string) => {
       setLoading(true);
       try {
         const { data } = await api.post<AuthResponse>(ENDPOINTS.AUTH.LOGIN, {
           email,
           password,
+          cf_turnstile_token: cfTurnstileToken,
         });
         setAuth(data.user, data.access_token, data.refresh_token);
         toast.success("Welcome back!");
@@ -97,10 +99,13 @@ export default function useAuth() {
     }
   }, [fetchMe]);
 
-  const requestPasswordReset = useCallback(async (email: string) => {
+  const requestPasswordReset = useCallback(async (email: string, cfTurnstileToken: string) => {
     setLoading(true);
     try {
-      const { data } = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
+      const { data } = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+        email,
+        cf_turnstile_token: cfTurnstileToken,
+      });
       return data;
     } finally {
       setLoading(false);

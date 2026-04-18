@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Turnstile, { type TurnstileInstance } from "@/components/ui/Turnstile";
 import useAuth from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -17,7 +18,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [cfToken, setCfToken] = useState("");
 
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -33,11 +36,16 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      await login(email, password, cfToken);
     } catch {
-      // Error toast handled by API interceptor
+      // Reset widget so user gets a fresh token on retry
+      turnstileRef.current?.reset();
+      setCfToken("");
     }
   };
+
+  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+  const canSubmit = !loading && email && password && (siteKeyMissing || !!cfToken);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -102,7 +110,14 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" size="lg" className="w-full group" loading={loading} disabled={!email || !password}>
+            <Turnstile
+              ref={turnstileRef}
+              onSuccess={setCfToken}
+              onExpire={() => setCfToken("")}
+              onError={() => setCfToken("")}
+            />
+
+            <Button type="submit" size="lg" className="w-full group" loading={loading} disabled={!canSubmit}>
               Sign In
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
