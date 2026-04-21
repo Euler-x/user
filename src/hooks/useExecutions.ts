@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import api from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
-import type { Execution, ExecutionVerify, PaginatedResponse } from "@/types";
+import type { CloseExecutionResponse, Execution, ExecutionVerify, PaginatedResponse } from "@/types";
 
 export default function useExecutions() {
   const [executions, setExecutions] = useState<Execution[]>([]);
@@ -32,5 +32,14 @@ export default function useExecutions() {
     return data;
   }, []);
 
-  return { executions, total, totalPages, loading, fetchExecutions, getExecution, verifyExecution };
+  const closeExecution = useCallback(async (id: string) => {
+    const { data } = await api.post<CloseExecutionResponse>(ENDPOINTS.EXECUTIONS.CLOSE(id));
+    // Optimistically update the local list so the UI reflects CLOSED immediately
+    setExecutions((prev) =>
+      prev.map((e) => (e.id === id ? data.execution : e))
+    );
+    return data;
+  }, []);
+
+  return { executions, total, totalPages, loading, fetchExecutions, getExecution, verifyExecution, closeExecution };
 }

@@ -165,6 +165,12 @@ export interface ExecutionVerify {
   verification_link: string | null;
 }
 
+export interface CloseExecutionResponse {
+  execution: Execution;
+  message: string;
+  already_closed_on_exchange: boolean;
+}
+
 // ── Transactions ───────────────────────────────────────────
 export interface Transaction {
   id: string;

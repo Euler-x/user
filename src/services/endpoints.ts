@@ -52,6 +52,7 @@ export const ENDPOINTS = {
     LIST: `${API}/executions`,
     GET: (id: string) => `${API}/executions/${id}`,
     VERIFY: (id: string) => `${API}/executions/${id}/verify`,
+    CLOSE: (id: string) => `${API}/executions/${id}/close`,
   },
 
   // Transactions
