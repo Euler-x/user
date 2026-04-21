@@ -1,25 +1,18 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect } from "react";
 
 export default function TawkToWidget() {
-  return (
-    <Script
-      id="tawk-to"
-      strategy="lazyOnload"
-      dangerouslySetInnerHTML={{
-        __html: `
-          var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-          (function(){
-            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-            s1.async=true;
-            s1.src='https://embed.tawk.to/69e2771df9ded71c3402789b/1jmea2jh1';
-            s1.charset='UTF-8';
-            s1.setAttribute('crossorigin','*');
-            s0.parentNode.insertBefore(s1,s0);
-          })();
-        `,
-      }}
-    />
-  );
+  useEffect(() => {
+    if (document.getElementById("tawk-to")) return;
+    const s = document.createElement("script");
+    s.id = "tawk-to";
+    s.async = true;
+    s.src = "https://embed.tawk.to/69e2771df9ded71c3402789b/1jmea2jh1";
+    s.charset = "UTF-8";
+    s.setAttribute("crossorigin", "*");
+    document.head.appendChild(s);
+  }, []);
+
+  return null;
 }
