@@ -28,8 +28,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
-  const canSubmit = !loading && email && (siteKeyMissing || !!cfToken);
+  const canSubmit = !loading && email;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">

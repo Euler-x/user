@@ -44,8 +44,7 @@ export default function LoginPage() {
     }
   };
 
-  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
-  const canSubmit = !loading && email && password && (siteKeyMissing || !!cfToken);
+  const canSubmit = !loading && email && password;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">

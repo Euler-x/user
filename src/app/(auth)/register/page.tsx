@@ -61,8 +61,7 @@ function RegisterForm() {
     }
   };
 
-  const siteKeyMissing = !process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
-  const canSubmit = !loading && email && password && confirmPassword && acceptedTerms && (siteKeyMissing || !!cfToken);
+  const canSubmit = !loading && email && password && confirmPassword && acceptedTerms;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
