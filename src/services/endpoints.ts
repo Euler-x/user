@@ -110,6 +110,7 @@ export const ENDPOINTS = {
     OVERVIEW: `${API}/analytics/overview`,
     STRATEGY: (id: string) => `${API}/analytics/strategy/${id}`,
     EQUITY_CURVE: `${API}/analytics/equity-curve`,
+    SYSTEM_PERFORMANCE: `${API}/analytics/system-performance`,
   },
 
   // Transparency

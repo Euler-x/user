@@ -625,6 +625,83 @@ export default function DashboardPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════ */}
+        {/* ── Portfolio Returns ── */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {overview?.has_portfolio_history && (
+          <motion.div
+            custom={3.5}
+            variants={fadeIn}
+            initial="hidden"
+            animate="show"
+          >
+            <div className="rounded-xl border border-white/[0.06] bg-dark-200/80 p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-5">
+                <SectionLabel color="neon">Portfolio Returns</SectionLabel>
+                <span className="text-[9px] uppercase tracking-widest text-gray-600">
+                  vs. balance snapshots
+                </span>
+              </div>
+
+              {/* Return percentages */}
+              <div className="grid grid-cols-3 gap-4 mb-5">
+                {[
+                  { label: "24h", value: overview.day_return_pct },
+                  { label: "7d", value: overview.week_return_pct },
+                  { label: "30d", value: overview.month_return_pct },
+                ].map((r) => {
+                  const pos = r.value >= 0;
+                  return (
+                    <div
+                      key={r.label}
+                      className="rounded-lg bg-dark-300/60 p-4 text-center border border-white/[0.04]"
+                    >
+                      <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-1.5">
+                        {r.label}
+                      </p>
+                      <p
+                        className="font-serif text-xl font-semibold tracking-tight"
+                        style={{ color: pos ? NEON : RED }}
+                      >
+                        {pos ? "+" : ""}
+                        {r.value.toFixed(2)}%
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Balance comparison + volume */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
+                    Starting Balance
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-white">
+                    {formatCurrency(overview.starting_balance)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
+                    Current Balance
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-white">
+                    {formatCurrency(overview.ending_balance)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
+                    Trade Volume
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-white">
+                    {formatCurrency(overview.trade_volume)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════ */}
         {/* ── Chart + Strategies ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

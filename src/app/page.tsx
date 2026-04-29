@@ -12,6 +12,9 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import useMarketData from "@/hooks/useMarketData";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import api from "@/services/api";
+import { ENDPOINTS } from "@/services/endpoints";
+import type { SystemPerformance } from "@/types";
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DATA
@@ -52,12 +55,42 @@ const pricingTiers = [
   },
 ];
 
-const stats = [
+const defaultStats = [
   { label: "Execution Uptime", value: 99.9, suffix: "%", decimals: 1 },
   { label: "Assets Supported", value: 50, suffix: "+", decimals: 0 },
   { label: "Avg Execution", value: 12, suffix: "ms", decimals: 0 },
   { label: "On-Chain Verified", value: 100, suffix: "%", decimals: 0 },
 ];
+
+function buildLiveStats(perf: SystemPerformance) {
+  // Format trade volume for display: $1.2M, $450K, etc.
+  const vol = perf.total_trade_volume;
+  let volValue: number;
+  let volSuffix: string;
+  let volDecimals: number;
+  if (vol >= 1_000_000) {
+    volValue = vol / 1_000_000;
+    volSuffix = "M";
+    volDecimals = 1;
+  } else if (vol >= 1_000) {
+    volValue = vol / 1_000;
+    volSuffix = "K";
+    volDecimals = 0;
+  } else {
+    volValue = vol;
+    volSuffix = "";
+    volDecimals = 0;
+  }
+
+  const totalDays = perf.winning_days + perf.losing_days;
+
+  return [
+    { label: "Trade Volume", value: volValue, suffix: `$${volSuffix}`, decimals: volDecimals },
+    { label: "Return", value: Math.abs(perf.total_return_pct), suffix: `${perf.total_return_pct >= 0 ? "+" : "-"}%`, decimals: 2 },
+    { label: "Winning Days", value: perf.winning_days, suffix: `/${totalDays}`, decimals: 0 },
+    { label: "On-Chain Verified", value: 100, suffix: "%", decimals: 0 },
+  ];
+}
 
 const securityPrinciples = [
   { icon: Lock, title: "Wallet-Signed Auth", desc: "Every action cryptographically authorized by wallet owner.", color: "#39FF14" },
@@ -493,6 +526,23 @@ function GlassCard({
 
 export default function LandingPage() {
   const { tokens } = useMarketData();
+  const [systemPerf, setSystemPerf] = useState<SystemPerformance | null>(null);
+
+  useEffect(() => {
+    api
+      .get<SystemPerformance>(ENDPOINTS.ANALYTICS.SYSTEM_PERFORMANCE)
+      .then(({ data }) => {
+        // Only use live data if there are actual trades
+        if (data.total_trade_volume > 0 || data.winning_days > 0) {
+          setSystemPerf(data);
+        }
+      })
+      .catch(() => {
+        // Silently fall back to default stats
+      });
+  }, []);
+
+  const stats = systemPerf ? buildLiveStats(systemPerf) : defaultStats;
 
   return (
     <div className="min-h-screen overflow-hidden">

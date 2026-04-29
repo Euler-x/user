@@ -430,9 +430,18 @@ export interface AnalyticsOverview {
   sharpe_ratio: number;
   max_drawdown: number;
   total_pnl: number;
+  trade_volume: number;
   avg_trade_pnl: number;
   best_trade: number;
   worst_trade: number;
+  portfolio_balance: number;
+  starting_balance: number;
+  ending_balance: number;
+  period_return_pct: number;
+  day_return_pct: number;
+  week_return_pct: number;
+  month_return_pct: number;
+  has_portfolio_history: boolean;
   period_days: number;
 }
 
@@ -445,6 +454,26 @@ export interface EquityCurvePoint {
   timestamp: string;
   cumulative_pnl: number;
   trade_pnl: number;
+}
+
+export interface DailyPerformance {
+  date: string;
+  trade_volume: number;
+  pnl: number;
+  pnl_pct: number;
+  cumulative_pnl: number;
+  cumulative_pnl_pct: number;
+  trades_count: number;
+}
+
+export interface SystemPerformance {
+  period_days: number;
+  total_trade_volume: number;
+  total_pnl: number;
+  total_return_pct: number;
+  winning_days: number;
+  losing_days: number;
+  daily_performance: DailyPerformance[];
 }
 
 // ── Transparency ──────────────────────────────────────────

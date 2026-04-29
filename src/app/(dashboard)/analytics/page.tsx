@@ -179,6 +179,82 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
+        {/* Portfolio Returns Breakdown */}
+        {overview?.has_portfolio_history && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <GlowCard>
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-cyan-400" />
+                  Portfolio Returns{exchangeLabel}
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Balance growth from portfolio snapshots (captured every 4 hours)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {[
+                  { label: "24h Return", value: overview.day_return_pct },
+                  { label: "7d Return", value: overview.week_return_pct },
+                  { label: "30d Return", value: overview.month_return_pct },
+                  { label: `${days}d Return`, value: overview.period_return_pct },
+                ].map((r) => {
+                  const pos = r.value >= 0;
+                  return (
+                    <div
+                      key={r.label}
+                      className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 text-center"
+                    >
+                      <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
+                        {r.label}
+                      </p>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: r.value === 0 ? "#6b7280" : pos ? "#39FF14" : "#F87171" }}
+                      >
+                        {pos && r.value !== 0 ? "+" : ""}
+                        {r.value.toFixed(2)}%
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-3 gap-6 pt-4 border-t border-white/[0.05]">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500">
+                    Starting Balance
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {formatCurrency(overview.starting_balance)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500">
+                    Current Balance
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {formatCurrency(overview.ending_balance)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500">
+                    Trade Volume
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {formatCurrency(overview.trade_volume)}
+                  </p>
+                </div>
+              </div>
+            </GlowCard>
+          </motion.div>
+        )}
+
         {/* Equity Curve */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
