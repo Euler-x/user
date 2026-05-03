@@ -13,10 +13,27 @@ export type SubscriptionStatus = "inactive" | "pending_payment" | "active" | "ex
 export type PaymentStatus = "waiting" | "confirming" | "confirmed" | "sending" | "partially_paid" | "finished" | "failed" | "refunded" | "expired";
 export type PlanStatus = "active" | "inactive" | "archived";
 export type BillingCycle = "monthly" | "quarterly" | "yearly";
-export type AmbassadorRank = "scout" | "guide" | "strategist" | "master";
-export type CommissionStatus = "pending" | "paid";
-export type BonusType = "conversion" | "retention" | "milestone" | "tier_promotion" | "annual_recognition";
-export type PayoutStatus = "pending" | "processing" | "paid" | "failed";
+export type AmbassadorRank =
+  | "associate"
+  | "bronze_leader"
+  | "silver_leader"
+  | "gold_leader"
+  | "platinum_leader"
+  | "diamond_leader"
+  | "elite_diamond"
+  | "black_diamond"
+  | "crown_ambassador"
+  | "grand_crown";
+export type CommissionStatus = "pending" | "paid" | "cancelled";
+export type BonusType =
+  | "rank_advancement"
+  | "performance_milestone"
+  | "fast_start"
+  | "loyalty_retention"
+  | "leadership_pool"
+  | "generational_override";
+export type PayoutStatus = "pending" | "processing" | "paid" | "failed" | "cancelled";
+export type TravelStatus = "qualifying" | "qualified" | "awarded" | "expired";
 export type TerritoryType = "geographic" | "demographic" | "platform";
 export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
@@ -232,11 +249,13 @@ export interface Ambassador {
   user_id: string;
   rank: AmbassadorRank;
   referral_code: string;
-  team_size: number;
+  par_count: number;
+  tav_count: number;
   total_referrals: number;
   rewards_earned: number;
   payout_address: string | null;
-  territory_id: string | null;
+  rank_achieved_at: string | null;
+  fast_start_claimed: number;
   created_at: string;
 }
 
@@ -245,6 +264,7 @@ export interface LeaderboardEntry {
   user_id: string;
   ambassador_rank: AmbassadorRank;
   total_referrals: number;
+  tav_count: number;
   rewards_earned: number;
 }
 
@@ -259,14 +279,23 @@ export interface ReferralItem {
   plan_price: number | null;
   is_subscribed: boolean;
   rank: AmbassadorRank;
+  subscription_months: number;
 }
 
-export interface TierProgress {
+export interface RankProgress {
   current_rank: AmbassadorRank;
   next_rank: AmbassadorRank | null;
-  active_referrals: number;
-  required_active_referrals: number | null;
-  required_retention_pct: number | null;
+  current_rank_label: string;
+  next_rank_label: string | null;
+  par_count: number;
+  tav_count: number;
+  par_required: number | null;
+  tav_required: number | null;
+  legs_required: number | null;
+  leg_rank_required: string | null;
+  qualifying_legs: number;
+  current_depth: number;
+  next_depth: number | null;
 }
 
 export interface EarningsSummary {
@@ -275,8 +304,10 @@ export interface EarningsSummary {
   current_month_commission: number;
   next_payout_date: string;
   active_referral_count: number;
-  retention_rate: number;
-  tier_progress: TierProgress;
+  tav_count: number;
+  rank_progress: RankProgress;
+  fast_start_eligible: boolean;
+  fast_start_period: number;
 }
 
 export interface AmbassadorCommission {
@@ -284,8 +315,10 @@ export interface AmbassadorCommission {
   month: number;
   year: number;
   active_referral_count: number;
-  commission_rate: number | null;
+  tav_count: number;
   commission_amount: number;
+  level_breakdown: Record<string, number> | null;
+  generational_override: number;
   status: CommissionStatus;
   paid_at: string | null;
   created_at: string;
@@ -315,20 +348,21 @@ export interface AmbassadorPayout {
 export interface TrainingModule {
   key: string;
   name: string;
-  tier: AmbassadorRank;
+  rank: AmbassadorRank;
   duration_min: number;
   completed: boolean;
   completed_at: string | null;
 }
 
-export interface AmbassadorTerritory {
+export interface TravelIncentive {
   id: string;
-  name: string;
-  territory_type: TerritoryType;
-  description: string | null;
-  revenue_share_pct: number;
-  master_ambassador_id: string | null;
-  ambassador_count: number;
+  destination: string;
+  rank_required: AmbassadorRank;
+  qualification_start: string;
+  qualification_end: string | null;
+  status: TravelStatus;
+  awarded_at: string | null;
+  admin_notes: string | null;
 }
 
 // ── Support ────────────────────────────────────────────────

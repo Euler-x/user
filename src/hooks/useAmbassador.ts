@@ -7,13 +7,13 @@ import type {
   AmbassadorBonus,
   AmbassadorCommission,
   AmbassadorPayout,
-  AmbassadorTerritory,
   EarningsSummary,
   LeaderboardEntry,
   PaginatedResponse,
   ReferralItem,
   ReferralResponse,
   TrainingModule,
+  TravelIncentive,
 } from "@/types";
 
 export default function useAmbassador() {
@@ -25,8 +25,9 @@ export default function useAmbassador() {
   const [bonuses, setBonuses] = useState<AmbassadorBonus[]>([]);
   const [payouts, setPayouts] = useState<AmbassadorPayout[]>([]);
   const [earningsSummary, setEarningsSummary] = useState<EarningsSummary | null>(null);
-  const [territory, setTerritory] = useState<AmbassadorTerritory | null>(null);
+  const [travelIncentives, setTravelIncentives] = useState<TravelIncentive[]>([]);
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>([]);
+  const [trainingStats, setTrainingStats] = useState({ completed_count: 0, total_count: 0 });
   const [loading, setLoading] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
@@ -97,16 +98,19 @@ export default function useAmbassador() {
     return data;
   }, []);
 
-  const fetchTerritory = useCallback(async () => {
-    const { data } = await api.get<AmbassadorTerritory | null>(ENDPOINTS.AMBASSADOR.TERRITORY);
-    setTerritory(data);
+  const fetchTravel = useCallback(async () => {
+    const { data } = await api.get<TravelIncentive[]>(ENDPOINTS.AMBASSADOR.TRAVEL);
+    setTravelIncentives(data);
     return data;
   }, []);
 
   const fetchTraining = useCallback(async () => {
-    const { data } = await api.get<{ modules: TrainingModule[] }>(ENDPOINTS.AMBASSADOR.TRAINING);
+    const { data } = await api.get<{ modules: TrainingModule[]; completed_count: number; total_count: number }>(
+      ENDPOINTS.AMBASSADOR.TRAINING
+    );
     setTrainingModules(data.modules);
-    return data.modules;
+    setTrainingStats({ completed_count: data.completed_count, total_count: data.total_count });
+    return data;
   }, []);
 
   const updatePayoutAddress = useCallback(async (address: string) => {
@@ -124,8 +128,9 @@ export default function useAmbassador() {
     bonuses,
     payouts,
     earningsSummary,
-    territory,
+    travelIncentives,
     trainingModules,
+    trainingStats,
     loading,
     fetchDashboard,
     fetchLeaderboard,
@@ -136,7 +141,7 @@ export default function useAmbassador() {
     fetchBonuses,
     fetchPayouts,
     fetchEarningsSummary,
-    fetchTerritory,
+    fetchTravel,
     fetchTraining,
     updatePayoutAddress,
   };

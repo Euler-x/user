@@ -80,7 +80,7 @@ export const ENDPOINTS = {
     COMMISSIONS: `${API}/ambassador/commissions`,
     BONUSES: `${API}/ambassador/bonuses`,
     PAYOUTS: `${API}/ambassador/payouts`,
-    TERRITORY: `${API}/ambassador/territory`,
+    TRAVEL: `${API}/ambassador/travel`,
     TRAINING: `${API}/ambassador/training`,
     PAYOUT_ADDRESS: `${API}/ambassador/payout-address`,
   },
