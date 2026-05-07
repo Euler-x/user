@@ -53,6 +53,7 @@ export interface User {
   has_wallet: boolean;
   telegram_configured: boolean;
   bybit_configured: boolean;
+  binance_configured: boolean;
   created_at: string;
 }
 
@@ -128,7 +129,7 @@ export interface StrategyUpdate {
 }
 
 // ── Signals ────────────────────────────────────────────────
-export type Exchange = "hyperliquid" | "bybit";
+export type Exchange = "hyperliquid" | "bybit" | "binance";
 
 export interface Signal {
   id: string;
@@ -157,6 +158,7 @@ export interface Execution {
   id: string;
   signal_id: string | null;
   bybit_signal_id: string | null;
+  binance_signal_id: string | null;
   user_id: string;
   strategy_id: string;
   order_type: OrderType;
@@ -566,6 +568,18 @@ export interface WalletBalance {
 }
 
 export interface BybitBalance {
+  connected: boolean;
+  testnet: boolean;
+  account_equity: number;
+  available_balance: number;
+  unrealized_pnl: number;
+  total_balance: number;
+  open_positions: number;
+  api_key_masked: string | null;
+  last_synced: string | null;
+}
+
+export interface BinanceBalance {
   connected: boolean;
   testnet: boolean;
   account_equity: number;

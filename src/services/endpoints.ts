@@ -18,6 +18,8 @@ export const ENDPOINTS = {
     RESET_PASSWORD: `${API}/auth/reset-password`,
     BYBIT_CONNECT: `${API}/auth/bybit/connect`,
     BYBIT_DISCONNECT: `${API}/auth/bybit/disconnect`,
+    BINANCE_CONNECT: `${API}/auth/binance/connect`,
+    BINANCE_DISCONNECT: `${API}/auth/binance/disconnect`,
   },
 
   // Strategies
@@ -45,6 +47,14 @@ export const ENDPOINTS = {
     LIVE: `${API}/bybit-signals/live`,
     HISTORY: `${API}/bybit-signals/history`,
     GET: (id: string) => `${API}/bybit-signals/${id}`,
+  },
+
+  // Binance Signals
+  BINANCE_SIGNALS: {
+    LIST: `${API}/binance-signals`,
+    LIVE: `${API}/binance-signals/live`,
+    HISTORY: `${API}/binance-signals/history`,
+    GET: (id: string) => `${API}/binance-signals/${id}`,
   },
 
   // Executions
@@ -125,6 +135,7 @@ export const ENDPOINTS = {
   WALLET: {
     BALANCE: `${API}/wallet/balance`,
     BYBIT_BALANCE: `${API}/wallet/bybit-balance`,
+    BINANCE_BALANCE: `${API}/wallet/binance-balance`,
   },
 
   // AI Chat

@@ -4,6 +4,7 @@ import type { Exchange } from "@/types";
 
 const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
 const BB_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+const BN_LOGO = "https://assets.coingecko.com/markets/images/52/large/binance.jpg";
 
 interface ExchangeSwitcherProps {
   active: Exchange | "all";
@@ -16,6 +17,7 @@ const OPTIONS: { key: Exchange | "all"; label: string; logo?: string }[] = [
   { key: "all", label: "All" },
   { key: "hyperliquid", label: "HyperLiquid", logo: HL_LOGO },
   { key: "bybit", label: "Bybit", logo: BB_LOGO },
+  { key: "binance", label: "Binance", logo: BN_LOGO },
 ];
 
 export default function ExchangeSwitcher({

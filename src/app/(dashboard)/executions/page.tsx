@@ -19,10 +19,12 @@ import type { Execution, Exchange } from "@/types";
 const EXPLORER_TX_URL: Record<string, string> = {
   hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
   bybit: "https://www.bybit.com/trade/usdt/",
+  binance: "https://www.binance.com/en/futures/",
 };
 
 const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
 const BB_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+const BN_LOGO = "https://assets.coingecko.com/markets/images/52/large/binance.jpg";
 
 function getExchange(e: Execution): string {
   return e.exchange || "hyperliquid";
@@ -67,7 +69,7 @@ function CloseConfirmDialog({ execution, onConfirm, onCancel, closing }: CloseCo
         <div className="bg-dark-300/60 rounded-xl border border-white/5 p-3.5 mb-5 space-y-2">
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">Exchange</span>
-            <span className="text-gray-200 font-medium uppercase">{ex === "bybit" ? "Bybit" : "HyperLiquid"}</span>
+            <span className="text-gray-200 font-medium uppercase">{ex === "bybit" ? "Bybit" : ex === "binance" ? "Binance" : "HyperLiquid"}</span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">Direction</span>
@@ -161,10 +163,12 @@ export default function ExecutionsPage() {
       header: "Exchange",
       render: (e: Execution) => {
         const ex = getExchange(e);
+        const logo = ex === "bybit" ? BB_LOGO : ex === "binance" ? BN_LOGO : HL_LOGO;
+        const label = ex === "bybit" ? "Bybit" : ex === "binance" ? "BN" : "HL";
         return (
           <div className="flex items-center gap-1.5">
-            <img src={ex === "bybit" ? BB_LOGO : HL_LOGO} alt={ex} className="h-3.5 w-3.5 rounded-sm" />
-            <span className="text-[10px] font-medium text-gray-400 uppercase">{ex === "bybit" ? "Bybit" : "HL"}</span>
+            <img src={logo} alt={ex} className="h-3.5 w-3.5 rounded-sm" />
+            <span className="text-[10px] font-medium text-gray-400 uppercase">{label}</span>
           </div>
         );
       },
@@ -307,7 +311,7 @@ export default function ExecutionsPage() {
             title="No Executions Yet"
             description={exchangeFilter === "all"
               ? "Once your strategies generate trades, they'll appear here with full details."
-              : `No executions on ${exchangeFilter === "bybit" ? "Bybit" : "HyperLiquid"} yet.`
+              : `No executions on ${exchangeFilter === "bybit" ? "Bybit" : exchangeFilter === "binance" ? "Binance" : "HyperLiquid"} yet.`
             }
             actionLabel="View Strategies"
             actionHref="/strategies"

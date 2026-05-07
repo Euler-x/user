@@ -7,11 +7,14 @@ const EXCHANGE_LOGOS: Record<string, string> = {
     "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp",
   bybit:
     "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp",
+  binance:
+    "https://assets.coingecko.com/markets/images/52/large/binance.jpg",
 };
 
 export const EXCHANGE_LABELS: Record<string, string> = {
   hyperliquid: "HyperLiquid",
   bybit: "Bybit",
+  binance: "Binance",
 };
 
 interface ExchangeIconProps {

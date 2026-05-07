@@ -33,14 +33,17 @@ import ExchangeIcon, { EXCHANGE_LABELS } from "@/components/ui/ExchangeIcon";
 const EXPLORER_URLS: Record<string, string> = {
   hyperliquid: "https://app.hyperliquid.xyz/explorer/tx/",
   bybit: "https://www.bybit.com/trade/usdt/",
+  binance: "https://www.binance.com/en/futures/",
 };
 
 const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
 const BYBIT_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
+const BN_LOGO = "https://assets.coingecko.com/markets/images/52/large/binance.jpg";
 
 const EXCHANGE_LOGOS: Record<string, string> = {
   hyperliquid: HL_LOGO,
   bybit: BYBIT_LOGO,
+  binance: BN_LOGO,
 };
 
 /* ──────────────────────────────────────────────────────────
@@ -275,7 +278,7 @@ function SignalDetailModal({
 function SignalsPageInner() {
   const searchParams = useSearchParams();
   const exchangeParam = searchParams.get("exchange");
-  const initialExchange: Exchange = exchangeParam === "bybit" ? "bybit" : "hyperliquid";
+  const initialExchange: Exchange = exchangeParam === "bybit" ? "bybit" : exchangeParam === "binance" ? "binance" : "hyperliquid";
 
   const { signals, totalPages, loading, fetchSignals, fetchLive, getSignal } = useSignals();
   const { subscription, loading: billingLoading, fetchSubscription } = useBilling();
@@ -375,7 +378,7 @@ function SignalsPageInner() {
 
         {/* Exchange tabs */}
         <div className="flex items-center gap-1 p-1 bg-dark-200/60 rounded-xl border border-white/5 w-fit">
-          {(["hyperliquid", "bybit"] as Exchange[]).map((ex) => (
+          {(["hyperliquid", "bybit", "binance"] as Exchange[]).map((ex) => (
             <button
               key={ex}
               onClick={() => { setExchange(ex); setPage(1); }}

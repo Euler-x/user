@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
     },
   ];
 
-  const exchangeLabel = exchange === "all" ? "" : exchange === "bybit" ? " (Bybit)" : " (HyperLiquid)";
+  const exchangeLabel = exchange === "all" ? "" : exchange === "bybit" ? " (Bybit)" : exchange === "binance" ? " (Binance)" : " (HyperLiquid)";
 
   return (
     <PageTransition>
@@ -281,7 +281,7 @@ export default function AnalyticsPage() {
             <p className="text-sm text-gray-500 max-w-md mx-auto">
               {exchange === "all"
                 ? "Analytics will populate once you have closed trades. Create and activate a strategy to start generating execution data."
-                : `No closed trades on ${exchange === "bybit" ? "Bybit" : "HyperLiquid"} yet. Switch to "All" to see combined analytics.`
+                : `No closed trades on ${exchange === "bybit" ? "Bybit" : exchange === "binance" ? "Binance" : "HyperLiquid"} yet. Switch to "All" to see combined analytics.`
               }
             </p>
           </div>

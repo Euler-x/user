@@ -13,12 +13,14 @@ import api from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
 import useWalletBalance from "@/hooks/useWalletBalance";
 import useBybitBalance from "@/hooks/useBybitBalance";
+import useBinanceBalance from "@/hooks/useBinanceBalance";
 import type { NotificationPreferences } from "@/types";
 import { cn, formatCurrency } from "@/lib/utils";
 
 const TABS = [
   { key: "wallet", label: "HyperLiquid", icon: Wallet },
   { key: "bybit", label: "Bybit", icon: BarChart3, iconUrl: "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp" },
+  { key: "binance", label: "Binance", icon: BarChart3, iconUrl: "https://assets.coingecko.com/markets/images/52/large/binance.jpg" },
   { key: "email", label: "Email", icon: Mail },
   { key: "telegram", label: "Telegram", icon: Send },
   { key: "notifications", label: "Notifications", icon: Bell },
@@ -42,6 +44,7 @@ export default function SettingsPage() {
   const [showUpdateWallet, setShowUpdateWallet] = useState(false);
   const { balance: walletBalance, loading: balanceLoading, fetchBalance } = useWalletBalance();
   const { balance: bybitBalance, loading: bybitBalLoading, fetchBalance: fetchBybitBal } = useBybitBalance();
+  const { balance: binanceBalance, loading: binanceBalLoading, fetchBalance: fetchBinanceBal } = useBinanceBalance();
 
   // Bybit
   const [bybitApiKey, setBybitApiKey] = useState("");
@@ -49,6 +52,15 @@ export default function SettingsPage() {
   const [bybitTestnet, setBybitTestnet] = useState(false);
   const [showBybitSecret, setShowBybitSecret] = useState(false);
   const [bybitLoading, setBybitLoading] = useState(false);
+  const [bybitConnectError, setBybitConnectError] = useState<string | null>(null);
+
+  // Binance
+  const [binanceApiKey, setBinanceApiKey] = useState("");
+  const [binanceApiSecret, setBinanceApiSecret] = useState("");
+  const [binanceTestnet, setBinanceTestnet] = useState(false);
+  const [showBinanceSecret, setShowBinanceSecret] = useState(false);
+  const [binanceLoading, setBinanceLoading] = useState(false);
+  const [binanceConnectError, setBinanceConnectError] = useState<string | null>(null);
 
   // Telegram
   const [botToken, setBotToken] = useState("");
@@ -71,13 +83,22 @@ export default function SettingsPage() {
     if (activeTab === "bybit" && user?.bybit_configured) {
       fetchBybitBal();
     }
-  }, [activeTab, user?.has_wallet, user?.bybit_configured, fetchBalance, fetchBybitBal]);
+    if (activeTab === "binance" && user?.binance_configured) {
+      fetchBinanceBal();
+    }
+  }, [activeTab, user?.has_wallet, user?.bybit_configured, user?.binance_configured, fetchBalance, fetchBybitBal, fetchBinanceBal]);
 
   const cleanHex = (s: string) => s.replace(/[^0-9a-fA-Fx]/g, "");
   const cleanAddress = cleanHex(walletAddress);
   const cleanKey = agentKey.replace(/[\s\u200B-\u200D\uFEFF\u00A0]/g, "");
   const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(cleanAddress);
   const isValidKey = cleanKey.length >= 40 && cleanKey.length <= 200;
+
+  // API key format hints (soft validation \u2014 real validation happens server-side)
+  const bybitKeyTooShort = bybitApiKey.trim().length > 0 && bybitApiKey.trim().length < 10;
+  const bybitSecretTooShort = bybitApiSecret.trim().length > 0 && bybitApiSecret.trim().length < 10;
+  const binanceKeyTooShort = binanceApiKey.trim().length > 0 && binanceApiKey.trim().length < 10;
+  const binanceSecretTooShort = binanceApiSecret.trim().length > 0 && binanceApiSecret.trim().length < 10;
 
   const handleConnectWallet = async () => {
     if (!isValidAddress || !isValidKey) return;
@@ -97,20 +118,29 @@ export default function SettingsPage() {
   };
 
   const handleConnectBybit = async () => {
-    if (!bybitApiKey || !bybitApiSecret) return;
+    const key = bybitApiKey.trim();
+    const secret = bybitApiSecret.trim();
+    if (!key || !secret) return;
     setBybitLoading(true);
+    setBybitConnectError(null);
     try {
       const { data } = await api.post(ENDPOINTS.AUTH.BYBIT_CONNECT, {
-        api_key: bybitApiKey,
-        api_secret: bybitApiSecret,
+        api_key: key,
+        api_secret: secret,
         testnet: bybitTestnet,
       });
       toast.success(data.message || "Bybit connected!");
       setBybitApiKey("");
       setBybitApiSecret("");
       await fetchMe();
-    } catch {
-      // Error toasted by interceptor
+      await fetchBybitBal();
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+      setBybitConnectError(
+        typeof detail === "string" && detail
+          ? detail
+          : "Connection failed. Check your API key and secret are correct and have Derivatives/Contract trading enabled."
+      );
     } finally {
       setBybitLoading(false);
     }
@@ -122,8 +152,52 @@ export default function SettingsPage() {
       await api.post(ENDPOINTS.AUTH.BYBIT_DISCONNECT);
       toast.success("Bybit disconnected");
       await fetchMe();
+    } catch {
+      // Error toasted by interceptor
     } finally {
       setBybitLoading(false);
+    }
+  };
+
+  const handleConnectBinance = async () => {
+    const key = binanceApiKey.trim();
+    const secret = binanceApiSecret.trim();
+    if (!key || !secret) return;
+    setBinanceLoading(true);
+    setBinanceConnectError(null);
+    try {
+      const { data } = await api.post(ENDPOINTS.AUTH.BINANCE_CONNECT, {
+        api_key: key,
+        api_secret: secret,
+        testnet: binanceTestnet,
+      });
+      toast.success(data.message || "Binance connected!");
+      setBinanceApiKey("");
+      setBinanceApiSecret("");
+      await fetchMe();
+      await fetchBinanceBal();
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+      setBinanceConnectError(
+        typeof detail === "string" && detail
+          ? detail
+          : "Connection failed. Check your API key and secret are correct and have Futures trading enabled."
+      );
+    } finally {
+      setBinanceLoading(false);
+    }
+  };
+
+  const handleDisconnectBinance = async () => {
+    setBinanceLoading(true);
+    try {
+      await api.post(ENDPOINTS.AUTH.BINANCE_DISCONNECT);
+      toast.success("Binance disconnected");
+      await fetchMe();
+    } catch {
+      // Error toasted by interceptor
+    } finally {
+      setBinanceLoading(false);
     }
   };
 
@@ -607,27 +681,37 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <Input
-                      value={bybitApiKey}
-                      onChange={(e) => setBybitApiKey(e.target.value.trim())}
-                      placeholder="Your Bybit API key"
-                      label="API Key"
-                    />
-                    <div className="relative">
+                    <div>
                       <Input
-                        value={bybitApiSecret}
-                        onChange={(e) => setBybitApiSecret(e.target.value.trim())}
-                        placeholder="Your Bybit API secret"
-                        label="API Secret"
-                        type={showBybitSecret ? "text" : "password"}
+                        value={bybitApiKey}
+                        onChange={(e) => { setBybitApiKey(e.target.value.trim()); setBybitConnectError(null); }}
+                        placeholder="Your Bybit API key"
+                        label="API Key"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowBybitSecret(!showBybitSecret)}
-                        className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-300 transition-colors"
-                      >
-                        {showBybitSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
+                      {bybitKeyTooShort && (
+                        <p className="mt-1 text-[11px] text-amber-400/80">API key looks too short — double-check you copied the full key.</p>
+                      )}
+                    </div>
+                    <div>
+                      <div className="relative">
+                        <Input
+                          value={bybitApiSecret}
+                          onChange={(e) => { setBybitApiSecret(e.target.value.trim()); setBybitConnectError(null); }}
+                          placeholder="Your Bybit API secret"
+                          label="API Secret"
+                          type={showBybitSecret ? "text" : "password"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowBybitSecret(!showBybitSecret)}
+                          className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-300 transition-colors"
+                        >
+                          {showBybitSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {bybitSecretTooShort && (
+                        <p className="mt-1 text-[11px] text-amber-400/80">API secret looks too short — double-check you copied the full secret.</p>
+                      )}
                     </div>
 
                     {/* Testnet toggle */}
@@ -650,15 +734,202 @@ export default function SettingsPage() {
                     <span>Your API keys are encrypted with AES-256 before storage. Only enable &quot;Contract Trading&quot; permissions — never enable withdrawal access.</span>
                   </div>
 
+                  {bybitConnectError && (
+                    <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>{bybitConnectError}</span>
+                    </div>
+                  )}
+
                   <Button
                     className="group"
                     onClick={handleConnectBybit}
                     loading={bybitLoading}
-                    disabled={!bybitApiKey || !bybitApiSecret}
+                    disabled={!bybitApiKey.trim() || !bybitApiSecret.trim() || bybitKeyTooShort || bybitSecretTooShort}
                   >
                     <BarChart3 className="h-4 w-4" />
-                    Connect Bybit {bybitTestnet ? "(Testnet)" : ""}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    {bybitLoading ? "Validating credentials…" : `Connect Bybit ${bybitTestnet ? "(Testnet)" : ""}`}
+                    {!bybitLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Binance Tab */}
+          {activeTab === "binance" && (
+            <Card>
+              <CardTitle>
+                <div className="flex items-center gap-2">
+                  <img src="https://assets.coingecko.com/markets/images/52/large/binance.jpg" alt="Binance" className="h-5 w-5 rounded-sm" /> Binance Futures
+                </div>
+              </CardTitle>
+              {user?.binance_configured ? (
+                <div className="mt-4 space-y-5">
+                  <div className="rounded-lg border border-white/[0.06] bg-dark-300/50 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-neon" />
+                        <span className="text-sm font-medium text-white">Binance Account Connected</span>
+                        <Badge variant="success">Active</Badge>
+                      </div>
+                      <button onClick={fetchBinanceBal} disabled={binanceBalLoading} className="rounded-md p-1.5 text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50">
+                        <RefreshCw className={`h-3.5 w-3.5 ${binanceBalLoading ? "animate-spin" : ""}`} />
+                      </button>
+                    </div>
+
+                    {binanceBalance?.connected && binanceBalance.last_synced && (
+                      <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Equity</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(binanceBalance.account_equity)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Available</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{formatCurrency(binanceBalance.available_balance)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Unrealized PnL</p>
+                          <p className={`mt-0.5 text-sm font-medium ${binanceBalance.unrealized_pnl >= 0 ? "text-neon" : "text-red-400"}`}>
+                            {binanceBalance.unrealized_pnl >= 0 ? "+" : ""}{formatCurrency(binanceBalance.unrealized_pnl)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-gray-600">Positions</p>
+                          <p className="mt-0.5 text-sm font-medium text-white">{binanceBalance.open_positions} open</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {binanceBalance?.testnet && (
+                      <div className="flex items-center gap-2 text-xs text-orange-400">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>Testnet mode — using paper trading</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Shield className="h-3 w-3 text-yellow-400/60" />
+                      <span>API keys are encrypted with AES-256 and stored securely</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Lock className="h-3 w-3 text-yellow-400/60" />
+                      <span>Futures trading permissions only — no withdrawal access</span>
+                    </div>
+
+                    {binanceBalance?.api_key_masked && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Activity className="h-3 w-3 text-yellow-400/60" />
+                        <span>API Key: <span className="font-mono">{binanceBalance.api_key_masked}</span></span>
+                      </div>
+                    )}
+                  </div>
+                  <Button size="sm" variant="danger" onClick={handleDisconnectBinance} loading={binanceLoading}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Disconnect Binance
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-5">
+                  <p className="text-sm text-gray-400">
+                    Connect your Binance account to enable automated trading on Binance USDⓈ-M perpetual futures.
+                    EulerX will use your API key to execute AI-generated signals.
+                  </p>
+
+                  <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-4 space-y-3">
+                    <p className="text-sm font-medium text-yellow-400">How to get your Binance Futures API key</p>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">1</div>
+                        <p className="text-xs text-gray-400">
+                          Go to <a href="https://www.binance.com/en/my/settings/api-management" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline inline-flex items-center gap-0.5">Binance API Management <ExternalLink className="h-2.5 w-2.5" /></a>
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">2</div>
+                        <p className="text-xs text-gray-400">Click &quot;Create API&quot; → choose <span className="text-gray-300 font-medium">System generated</span></p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">3</div>
+                        <p className="text-xs text-gray-400">Enable <span className="text-gray-300 font-medium">Enable Futures</span> under permissions. Do NOT enable withdrawals or transfers.</p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">4</div>
+                        <p className="text-xs text-gray-400">Copy both the <span className="text-gray-300 font-medium">API Key</span> and <span className="text-gray-300 font-medium">Secret Key</span> and paste below. The secret is shown only once.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Input
+                        value={binanceApiKey}
+                        onChange={(e) => { setBinanceApiKey(e.target.value.trim()); setBinanceConnectError(null); }}
+                        placeholder="Your Binance Futures API key"
+                        label="API Key"
+                      />
+                      {binanceKeyTooShort && (
+                        <p className="mt-1 text-[11px] text-amber-400/80">API key looks too short — double-check you copied the full key.</p>
+                      )}
+                    </div>
+                    <div>
+                      <div className="relative">
+                        <Input
+                          value={binanceApiSecret}
+                          onChange={(e) => { setBinanceApiSecret(e.target.value.trim()); setBinanceConnectError(null); }}
+                          placeholder="Your Binance Futures API secret"
+                          label="API Secret"
+                          type={showBinanceSecret ? "text" : "password"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowBinanceSecret(!showBinanceSecret)}
+                          className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-300 transition-colors"
+                        >
+                          {showBinanceSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {binanceSecretTooShort && (
+                        <p className="mt-1 text-[11px] text-amber-400/80">API secret looks too short — double-check you copied the full secret.</p>
+                      )}
+                    </div>
+
+                    {/* Testnet toggle */}
+                    <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-dark-300/30 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-white">Testnet Mode</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Use Binance Futures testnet for paper trading (no real funds)</p>
+                      </div>
+                      <button
+                        onClick={() => setBinanceTestnet(!binanceTestnet)}
+                        className={`h-5 w-10 rounded-full transition-colors ${binanceTestnet ? "bg-yellow-400" : "bg-dark-50"}`}
+                      >
+                        <div className={`h-4 w-4 rounded-full bg-white transition-transform ${binanceTestnet ? "translate-x-5" : "translate-x-0.5"}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/10 rounded-lg p-3">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>Your API keys are encrypted with AES-256 before storage. Only enable &quot;Enable Futures&quot; — never enable withdrawal or transfer permissions.</span>
+                  </div>
+
+                  {binanceConnectError && (
+                    <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>{binanceConnectError}</span>
+                    </div>
+                  )}
+
+                  <Button
+                    className="group"
+                    onClick={handleConnectBinance}
+                    loading={binanceLoading}
+                    disabled={!binanceApiKey.trim() || !binanceApiSecret.trim() || binanceKeyTooShort || binanceSecretTooShort}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    {binanceLoading ? "Validating credentials…" : `Connect Binance Futures ${binanceTestnet ? "(Testnet)" : ""}`}
+                    {!binanceLoading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
                   </Button>
                 </div>
               )}

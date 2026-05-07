@@ -4,7 +4,9 @@ import { ENDPOINTS } from "@/services/endpoints";
 import type { Signal, SignalDetail, PaginatedResponse, Exchange } from "@/types";
 
 function getEndpoints(exchange: Exchange) {
-  return exchange === "bybit" ? ENDPOINTS.BYBIT_SIGNALS : ENDPOINTS.SIGNALS;
+  if (exchange === "bybit") return ENDPOINTS.BYBIT_SIGNALS;
+  if (exchange === "binance") return ENDPOINTS.BINANCE_SIGNALS;
+  return ENDPOINTS.SIGNALS;
 }
 
 export default function useSignals() {
