@@ -193,7 +193,7 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 const STRAT_DOT: Record<string, string> = {
-  conservative: "bg-cyan",
+  conservative: "bg-cyan",g
   moderate: "bg-purple",
   aggressive: "bg-amber",
   custom: "bg-neon",
@@ -341,13 +341,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-gray-600">
-            Welcome Back
-          </p>
-          <h1 className="mt-2 font-serif text-3xl font-medium text-white">
-            {getGreeting()}
-            {userName ? `, ${userName}` : ""}
-          </h1>
+         
           <div className="mx-auto mt-3 flex max-w-xs items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-neon/15" />
             <p className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
