@@ -470,6 +470,9 @@ export interface AnalyticsOverview {
   avg_trade_pnl: number;
   best_trade: number;
   worst_trade: number;
+  // Trade-based return % — always present regardless of portfolio snapshots
+  pnl_on_volume_pct: number;
+  // Portfolio snapshot-based returns
   portfolio_balance: number;
   starting_balance: number;
   ending_balance: number;
@@ -479,6 +482,9 @@ export interface AnalyticsOverview {
   month_return_pct: number;
   has_portfolio_history: boolean;
   period_days: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  daily_performance?: DailyPerformance[];
 }
 
 export interface StrategyAnalytics extends AnalyticsOverview {

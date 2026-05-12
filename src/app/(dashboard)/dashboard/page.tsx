@@ -294,11 +294,8 @@ export default function DashboardPage() {
     overview?.total_pnl ??
     executions.reduce((sum, e) => sum + (e.pnl ?? 0), 0);
   const pnlPositive = totalPnl >= 0;
-  const totalAllocationPct = activeStrategies.reduce(
-    (sum, s) => sum + s.allocation_pct,
-    0
-  );
-  const returnPct = totalAllocationPct > 0 ? (totalPnl / totalAllocationPct) * 100 : 0;
+  // Return % based on capital actually deployed — always accurate, no snapshot dependency
+  const returnPct = overview?.pnl_on_volume_pct ?? 0;
   const chartColor =
     equityCurve.length > 0 &&
     equityCurve[equityCurve.length - 1]?.cumulative_pnl >= 0
@@ -682,9 +679,9 @@ export default function DashboardPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* ── Portfolio Returns ── */}
+        {/* ── Performance Summary ── */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        {overview?.has_portfolio_history && (
+        {overview && overview.total_trades > 0 && (
           <motion.div
             custom={3.5}
             variants={fadeIn}
@@ -693,67 +690,72 @@ export default function DashboardPage() {
           >
             <div className="rounded-xl border border-white/[0.06] bg-dark-200/80 p-6 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-5">
-                <SectionLabel color="neon">Portfolio Returns</SectionLabel>
+                <SectionLabel color="neon">Performance Summary</SectionLabel>
                 <span className="text-[9px] uppercase tracking-widest text-gray-600">
-                  vs. balance snapshots
+                  last {chartPeriod} days
                 </span>
               </div>
 
-              {/* Return percentages */}
-              <div className="grid grid-cols-3 gap-4 mb-5">
-                {[
-                  { label: "24h", value: overview.day_return_pct },
-                  { label: "7d", value: overview.week_return_pct },
-                  { label: "30d", value: overview.month_return_pct },
-                ].map((r) => {
-                  const pos = r.value >= 0;
-                  return (
-                    <div
-                      key={r.label}
-                      className="rounded-lg bg-dark-300/60 p-4 text-center border border-white/[0.04]"
-                    >
-                      <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-1.5">
-                        {r.label}
-                      </p>
-                      <p
-                        className="font-serif text-xl font-semibold tracking-tight"
-                        style={{ color: pos ? NEON : RED }}
-                      >
-                        {pos ? "+" : ""}
-                        {r.value.toFixed(2)}%
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Balance comparison + volume */}
-              <div className="grid grid-cols-3 gap-4">
+              {/* Hero return */}
+              <div className="mb-5 rounded-xl bg-dark-300/60 border border-white/[0.04] p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
-                    Starting Balance
+                  <p className="text-[10px] uppercase tracking-widest text-gray-600 mb-1">
+                    Profits Last {chartPeriod} Days
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-white">
-                    {formatCurrency(overview.starting_balance)}
+                  <p
+                    className="font-serif text-3xl font-bold tracking-tight"
+                    style={{ color: (overview.pnl_on_volume_pct ?? 0) >= 0 ? NEON : RED }}
+                  >
+                    {(overview.pnl_on_volume_pct ?? 0) >= 0 ? "+" : ""}
+                    {(overview.pnl_on_volume_pct ?? 0).toFixed(2)}%
                   </p>
+                  <p className="text-[10px] text-gray-600 mt-1">Return on capital traded</p>
                 </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
-                    Current Balance
+                <div className="text-right">
+                  <p className="text-[9px] uppercase tracking-wider text-gray-600">Net P/L</p>
+                  <p
+                    className="text-lg font-semibold mt-0.5"
+                    style={{ color: overview.total_pnl >= 0 ? NEON : RED }}
+                  >
+                    {overview.total_pnl >= 0 ? "+" : ""}
+                    {formatCurrency(Math.abs(overview.total_pnl))}
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-white">
-                    {formatCurrency(overview.ending_balance)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-gray-600">
-                    Trade Volume
-                  </p>
-                  <p className="mt-0.5 text-sm font-medium text-white">
+                  <p className="text-[9px] uppercase tracking-wider text-gray-600 mt-2">Capital Traded</p>
+                  <p className="text-sm font-medium text-white mt-0.5">
                     {formatCurrency(overview.trade_volume)}
                   </p>
                 </div>
               </div>
+
+              {/* Snapshot-based period returns (only when available) */}
+              {overview.has_portfolio_history && (
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: "24h", value: overview.day_return_pct },
+                    { label: "7d", value: overview.week_return_pct },
+                    { label: "30d", value: overview.month_return_pct },
+                  ].map((r) => {
+                    const pos = r.value >= 0;
+                    return (
+                      <div
+                        key={r.label}
+                        className="rounded-lg bg-dark-300/60 p-3 text-center border border-white/[0.04]"
+                      >
+                        <p className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">
+                          {r.label}
+                        </p>
+                        <p
+                          className="font-serif text-base font-semibold"
+                          style={{ color: pos ? NEON : RED }}
+                        >
+                          {pos ? "+" : ""}
+                          {r.value.toFixed(2)}%
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
