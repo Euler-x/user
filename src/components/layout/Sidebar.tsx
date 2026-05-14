@@ -42,17 +42,13 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const HL_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120519/hyprliquid_orr9vl.webp";
-const BYBIT_LOGO = "https://res.cloudinary.com/dpwddkw5t/image/upload/v1774120520/bybit_obnhd8.webp";
-
 const navGroups: NavGroup[] = [
   {
     title: "Trading",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Strategies", href: "/strategies", icon: Brain },
-      { label: "HL Signals", href: "/signals?exchange=hyperliquid", icon: Zap, iconUrl: HL_LOGO },
-      { label: "Bybit Signals", href: "/signals?exchange=bybit", icon: Zap, iconUrl: BYBIT_LOGO },
+      { label: "Signals", href: "/signals", icon: Zap },
       { label: "Executions", href: "/executions", icon: Activity },
     ],
   },
