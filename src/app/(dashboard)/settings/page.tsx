@@ -851,10 +851,14 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-start gap-2.5">
                         <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">3</div>
-                        <p className="text-xs text-gray-400">Enable <span className="text-gray-300 font-medium">Enable Futures</span> under permissions. Do NOT enable withdrawals or transfers.</p>
+                        <p className="text-xs text-gray-400">Enable <span className="text-gray-300 font-medium">Enable Futures</span> under permissions and make sure USD-M Futures is activated on the account. Do NOT enable withdrawals or transfers.</p>
                       </div>
                       <div className="flex items-start gap-2.5">
                         <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">4</div>
+                        <p className="text-xs text-gray-400">If IP restrictions are enabled, whitelist the EulerX server IP before connecting. Testnet and mainnet use separate API keys.</p>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex items-center justify-center h-5 w-5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold shrink-0">5</div>
                         <p className="text-xs text-gray-400">Copy both the <span className="text-gray-300 font-medium">API Key</span> and <span className="text-gray-300 font-medium">Secret Key</span> and paste below. The secret is shown only once.</p>
                       </div>
                     </div>
@@ -911,7 +915,7 @@ export default function SettingsPage() {
 
                   <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/10 rounded-lg p-3">
                     <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                    <span>Your API keys are encrypted with AES-256 before storage. Only enable &quot;Enable Futures&quot; — never enable withdrawal or transfer permissions.</span>
+                    <span>Your API keys are encrypted with AES-256 before storage. Only enable reading and Futures trading permissions. Never enable withdrawal or transfer permissions.</span>
                   </div>
 
                   {binanceConnectError && (
