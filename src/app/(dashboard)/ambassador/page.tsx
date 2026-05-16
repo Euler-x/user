@@ -91,6 +91,9 @@ const LEVEL_RATES: Record<number, number> = {
   1: 25, 2: 8, 3: 5, 4: 4, 5: 3, 6: 3, 7: 2, 8: 2, 9: 2, 10: 2,
 };
 
+const SUBSCRIPTION_PRICE = 100;
+const LOYALTY_BONUS_RATE = 10;
+
 // ── Rank advancement bonuses ──────────────────────────────────────────────────
 
 const RANK_ADVANCEMENT_BONUSES: Partial<Record<AmbassadorRank, string>> = {
@@ -172,7 +175,7 @@ function positionDisplay(pos: number) {
 const FAQ_ITEMS = [
   {
     q: "How much can I realistically earn?",
-    a: "At Associate, a single direct subscriber earns you $62.50/month (25% of $250). At Bronze Leader you also earn on your L2 downline. By Gold Leader (earning L1-L4), a team of 40 active subscribers can bring ~$3,500/month. Diamond+ ambassadors also receive a share of the monthly 2% Leadership Revenue Pool.",
+    a: "At Associate, a single direct subscriber earns you $25/month (25% of $100). Higher ranks unlock deeper downline levels, and Diamond+ ambassadors also receive a share of the monthly 2% Leadership Revenue Pool.",
   },
   {
     q: "What is PAR vs TAV?",
@@ -603,7 +606,7 @@ export default function AmbassadorPage() {
                   Multi-Level Commission Rates
                 </h2>
                 <Card>
-                  <p className="text-xs text-gray-500 mb-3">Subscription price is $250/month. Commission = price × level rate.</p>
+                  <p className="text-xs text-gray-500 mb-3">Subscription price is $100/month. Commission = price × level rate.</p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -617,7 +620,7 @@ export default function AmbassadorPage() {
                       <tbody className="divide-y divide-white/5">
                         {([1,2,3,4,5,6,7,8,9,10] as const).map((lvl) => {
                           const rate = LEVEL_RATES[lvl];
-                          const perSub = (250 * rate) / 100;
+                          const perSub = (SUBSCRIPTION_PRICE * rate) / 100;
                           const unlockRank: AmbassadorRank = (["associate","bronze_leader","silver_leader","gold_leader","platinum_leader","diamond_leader","elite_diamond","black_diamond","crown_ambassador","grand_crown"] as AmbassadorRank[])[lvl - 1];
                           const isCurrentOrBelow = RANK_ORDER.indexOf(currentRank) >= lvl - 1;
                           return (
@@ -636,7 +639,7 @@ export default function AmbassadorPage() {
                         <tr className="bg-orange-400/5 hover:bg-orange-400/10">
                           <td className="py-3 px-2 text-orange-400 font-medium">L11+</td>
                           <td className="py-3 px-2 text-right font-bold text-orange-400">1%</td>
-                          <td className="py-3 px-2 text-right text-orange-400">$2.50</td>
+                          <td className="py-3 px-2 text-right text-orange-400">${(SUBSCRIPTION_PRICE * 0.01).toFixed(2)}</td>
                           <td className="py-3 px-2">
                             <Badge variant="neon">Crown Ambassador</Badge>
                           </td>
@@ -711,10 +714,10 @@ export default function AmbassadorPage() {
                       <Shield className="h-4 w-4 text-green-400" />
                       Loyalty Retention Bonus
                     </p>
-                    <p className="text-xs text-gray-500 mb-3">$25/month per L1 subscriber with 12+ months continuous</p>
+                    <p className="text-xs text-gray-500 mb-3">10% of plan price per L1 subscriber with 12+ months continuous</p>
                     <div className="px-3 py-3 rounded-lg bg-green-400/5 border border-green-400/20">
-                      <p className="text-sm font-bold text-green-400">$25 / subscriber / month</p>
-                      <p className="text-xs text-gray-500 mt-1">e.g. 10 loyal subscribers = $250 extra/month</p>
+                      <p className="text-sm font-bold text-green-400">${((SUBSCRIPTION_PRICE * LOYALTY_BONUS_RATE) / 100).toFixed(2)} / subscriber / month</p>
+                      <p className="text-xs text-gray-500 mt-1">e.g. 10 loyal subscribers = $100 extra/month</p>
                     </div>
                     <p className="text-xs text-gray-600 mt-2">Calculated monthly alongside regular commissions.</p>
                   </Card>

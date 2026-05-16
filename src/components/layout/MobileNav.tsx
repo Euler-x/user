@@ -212,7 +212,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-white">Subscribe</p>
-                      <p className="text-[10px] text-gray-500">$250/mo — full access</p>
+                      <p className="text-[10px] text-gray-500">$100/mo — full access</p>
                     </div>
                     <ArrowRight className="h-3.5 w-3.5 text-amber-400/40 group-hover:text-amber-400 transition-all flex-shrink-0" />
                   </Link>

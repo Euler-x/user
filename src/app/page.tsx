@@ -38,7 +38,7 @@ const strategyMethods = [
 const pricingTiers = [
   {
     name: "EulerX ATE",
-    price: 250,
+    price: 100,
     desc: "Complete access to the AI-powered Automated Trading Engine. No tiers, no feature gates — everything included.",
     features: [
       "Unlimited Strategies",
@@ -1132,7 +1132,7 @@ export default function LandingPage() {
                 One Plan. <span className="text-gradient">Complete</span> Access.
               </h2>
               <p className="text-gray-400 max-w-xl mx-auto text-lg">
-                No tiers, no feature gates. Everything included for $250/month with a 7-day free trial.
+                No tiers, no feature gates. Everything included for $100/month with a 7-day free trial.
               </p>
             </motion.div>
           </div>
