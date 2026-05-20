@@ -1410,8 +1410,8 @@ export default function LandingPage() {
               Earn Lifetime Commissions
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-sm leading-relaxed">
-              Refer users to EulerX and earn 15-30% recurring commissions on every subscription &mdash; for life.
-              No upfront costs, no quotas, no lock-in. Free to join.
+              Refer users to EulerX and earn recurring commissions from the $100/month subscription.
+              Earn $25/month on each direct active subscriber, with deeper levels unlocked as your rank grows.
             </p>
           </motion.div>
 
@@ -1424,10 +1424,10 @@ export default function LandingPage() {
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
           >
             {[
-              { label: "Commission Rate", value: "15-30%", sub: "Lifetime recurring" },
-              { label: "Scout Earnings", value: "$735/mo", sub: "20 referrals" },
-              { label: "Guide Earnings", value: "$2,450/mo", sub: "50 referrals" },
-              { label: "Master Earnings", value: "$36K+/mo", sub: "500 referrals" },
+              { label: "Direct L1", value: "$25/mo", sub: "25% of $100" },
+              { label: "L2 Unlock", value: "$8/mo", sub: "8% per active L2" },
+              { label: "L3 Unlock", value: "$5/mo", sub: "5% per active L3" },
+              { label: "Loyalty Bonus", value: "$10/mo", sub: "After 12+ months" },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -1450,40 +1450,40 @@ export default function LandingPage() {
           >
             {[
               {
-                tier: "Scout",
-                rate: "15%",
+                tier: "Associate",
+                rate: "25% L1",
                 req: "Free to join",
                 color: "text-gray-300",
                 border: "border-gray-600/30",
                 bg: "bg-gray-500/5",
-                perks: ["Marketing materials", "Discord access", "Email support"],
+                perks: ["Earn on direct subscribers", "$25 per active L1", "Referral tracking dashboard"],
               },
               {
-                tier: "Guide",
-                rate: "20%",
-                req: "10+ active referrals",
+                tier: "Bronze Leader",
+                rate: "L1-L2",
+                req: "3 PAR / 3 TAV",
                 color: "text-blue-400",
                 border: "border-blue-500/30",
                 bg: "bg-blue-500/5",
-                perks: ["Ambassador spotlight", "Office hours", "Co-marketing"],
+                perks: ["25% on L1", "8% on L2", "Rank bonus eligible"],
               },
               {
-                tier: "Strategist",
-                rate: "25%",
-                req: "50+ active referrals",
+                tier: "Silver Leader",
+                rate: "L1-L3",
+                req: "5 PAR / 15 TAV",
                 color: "text-purple-400",
                 border: "border-purple-500/30",
                 bg: "bg-purple-500/5",
-                perks: ["Board-level access", "White-label support", "Equity discussion"],
+                perks: ["25% on L1", "8% on L2", "5% on L3"],
               },
               {
-                tier: "Master",
-                rate: "30%",
-                req: "300+ referrals / invite",
+                tier: "Diamond+",
+                rate: "Pool + depth",
+                req: "250+ TAV",
                 color: "text-amber-400",
                 border: "border-amber-500/30",
                 bg: "bg-amber-500/5",
-                perks: ["Territory bonus +5%", "AUM bonus 0.5%", "Revenue share"],
+                perks: ["Up to 6+ levels", "2% leadership pool", "Travel incentives"],
               },
             ].map((t) => (
               <div
@@ -1522,8 +1522,8 @@ export default function LandingPage() {
                 {[
                   { step: "1", title: "Apply for free", desc: "10-minute application, approved within 24-48 hours" },
                   { step: "2", title: "Get your referral link", desc: "Unique trackable URL — share anywhere" },
-                  { step: "3", title: "Users sign up & subscribe", desc: "We handle onboarding, support & billing" },
-                  { step: "4", title: "Earn monthly commissions", desc: "Paid last business day of each month via crypto or bank" },
+                  { step: "3", title: "Users sign up & subscribe", desc: "Each active subscription is $100/month" },
+                  { step: "4", title: "Earn monthly commissions", desc: "Calculated monthly and paid on the 15th of the following month" },
                 ].map((s) => (
                   <div key={s.step} className="flex gap-3">
                     <div className="h-7 w-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
@@ -1559,7 +1559,8 @@ export default function LandingPage() {
 
               <p className="text-xs text-gray-500 leading-relaxed mb-6">
                 Perfect for crypto traders, content creators, community leaders, and anyone
-                with a network. Earn $183-$36,000+/month depending on your tier and referral count.
+                with a network. Earn $25/month per active direct subscriber, plus deeper-level
+                commissions, loyalty bonuses, and Diamond+ leadership pool rewards as you grow.
               </p>
 
               <div className="mt-auto flex flex-col sm:flex-row gap-3">
