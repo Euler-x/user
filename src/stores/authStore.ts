@@ -86,9 +86,7 @@ export const useAuthStore = create<AuthState>()(
  * Safe to call during SSR — returns false until the client hydrates.
  */
 export function useAuthHasHydrated(): boolean {
-  const [hasHydrated, setHasHydrated] = useState(() =>
-    typeof window !== "undefined" && useAuthStore.persist.hasHydrated()
-  );
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     // In case hydration completed before this effect ran
